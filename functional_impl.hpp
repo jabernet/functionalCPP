@@ -91,6 +91,7 @@ namespace functional_impl
 		while (lhsIt != lhs.end() && rhsIt != rhs.end())
 		{
 			out.push_back(f(*lhsIt, *rhsIt));
+            ++lhsIt; ++rhsIt;
 		}
 		return out;
 	}
