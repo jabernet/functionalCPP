@@ -27,12 +27,13 @@ namespace functional_impl
 		outc.reserve(inc.size());
 	}
 
-    void reserve(...)
+	template < typename... T >
+	void reserve(T...)
 	{
 	}
 
 	template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType = decltype(std::declval<MapFnType>()(std::declval<ValueType>())), typename... MoreTypes>
-	ContainerType<ResultType> map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input)
+	auto map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType>
 	{
 		ContainerType<ResultType> output;
 		reserve(output, input);
@@ -46,15 +47,8 @@ namespace functional_impl
 	template<template<typename, typename ...> class ContainerType, typename ValueType, typename ResultType, typename... MoreTypes>
 	auto map(ResultType(ValueType::*fun)() const, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType>
 	{
-		typedef ContainerType<ResultType> OutputType;
-		OutputType output;
-		reserve(output, input);
-		for (const ValueType& value : input)
-		{
-			output.push_back((value.*fun)());
-		}
-		return output;
-	}	
+		return map([fun] (ValueType v) { return (v.*fun)(); }, input);
+	}
 
 	template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
 	OutValue foldr(Fun f, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
