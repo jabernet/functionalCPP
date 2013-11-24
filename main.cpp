@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip> 
 #include <vector>
+#include <list>
 #include <stdint.h>
 #include <tuple>
 #include <string>
@@ -14,45 +15,24 @@ namespace functional
 
     template<template<typename,typename ...> class ContainerType, typename ValueType, typename ResultType, typename... MoreTypes>
 	auto map(const ContainerType<ValueType, MoreTypes...>& input, ResultType(ValueType::*fun)() const)->ContainerType<ResultType, MoreTypes...>;
-//
-//    template<typename, typename V = bool>
-//    struct _has_reserve: public std::false_type { };
-//
-//    template<typename Container>
-//    struct _has_reserve<Container,
-//        typename enable_if<
-//is_same<decltype(declval<Container>().reserve(0)), void>::value,
-//            bool
-//            >::type
-//        > : true_type { };
-//
-//    template<typename InputContainer, typename OutputContainer, bool hasReserve = _has_reserve<OutputContainer>::value>
-//    struct _reserveHelper;
-//
-//    template<typename InputContainer, typename OutputContainer>
-//    struct _reserveHelper<InputContainer, OutputContainer, true>
-//    {
-//        static void execute(OutputContainer & output, const InputContainer& input)
-//        {
-//            output.reserve(input.size());
-//        }
-//    };
-//
-//    template<typename InputContainer, typename OutputContainer>
-//    struct _reserveHelper<InputContainer, OutputContainer, false>
-//    {
-//        static void execute(OutputContainer &, const InputContainer&)
-//        {
-//        }
-//    };
+
+	template < typename COut, typename CIn >
+	auto reserve(COut& outc, CIn inc) -> decltype(outc.reserve(inc.size()))
+	{
+		outc.reserve(inc.size());
+	}
+
+	static void reserve(...)
+	{
+	}
 
     template<template<typename,typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType = decltype(std::declval<MapFnType>()(std::declval<ValueType>())), typename... MoreTypes, typename OutputType = ContainerType<ResultType, MoreTypes...> >
 	OutputType map(const ContainerType<ValueType, MoreTypes...>& input, MapFnType fun)
     {
         typedef ContainerType<ValueType, MoreTypes...> InputType;
         OutputType output;
-//        _reserveHelper<InputType, OutputType>::execute(output, input);
-        for(const ValueType& value: input)
+		reserve(output, input);
+        for (const ValueType& value: input)
         {
             output.push_back(fun(value));
         }
@@ -65,8 +45,8 @@ namespace functional
         typedef ContainerType<ValueType, MoreTypes...> InputType;
         typedef ContainerType<ResultType, MoreTypes...> OutputType;
         OutputType output;
-//        _reserveHelper<InputType, OutputType>::execute(output, input);
-        for(const ValueType& value: input)
+		reserve(output, input);
+		for (const ValueType& value : input)
         {
             output.push_back((value.*fun)());
         }
@@ -184,12 +164,15 @@ int main(const int argc, const char* argv[])
 	std::vector<int> v { 1, 2, 3, 4, };
 	std::vector<int> v1 { 1, 2, 3, 4, };
 
+	std::list<int> l { 1, 2, 3, 4 };
+
 	auto sum1 = functional::foldr([] (int a, int b) { return a + b; }, 0, v);
 	auto sum2 = functional::foldl([] (int a, int b) { return a + b; }, 0, v);
 
 	auto fac1 = functional::foldl([](int a, int b) { return a * b; }, 1, v);
 
 	auto vs = functional::map(v, [](int a) { return std::to_string(a); });
+	auto ls = functional::map(l, [](int a) { return std::to_string(a); });
 
 	std::cout << sum1 << std::endl;
 	std::cout << sum2 << std::endl;
