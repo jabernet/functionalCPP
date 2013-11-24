@@ -1,0 +1,6 @@
+/ipch
+Debug
+Release
+functional_cpp.*
+!functional_cpp.sln
+!functional_cpp.vcxproj
