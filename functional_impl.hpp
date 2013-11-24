@@ -63,7 +63,7 @@ namespace functional_impl
 		return res;
 	}
 
-	template<typename OutContainer = Container<OutValue, ExtraArgs...>, template<typename...> class Container, typename Fun, typename LhsValue, typename RhsValue, typename OutValue = decltype(std::declval<Fun>()(std::declval<LhsValue>(), std::declval<RhsValue>())), typename... ExtraArgs>
+	template<template<typename...> class Container, typename Fun, typename LhsValue, typename RhsValue, typename OutValue = decltype(std::declval<Fun>()(std::declval<LhsValue>(), std::declval<RhsValue>())), typename... ExtraArgs, typename OutContainer = Container<OutValue, ExtraArgs...>>
 	OutContainer zipWith(Container<LhsValue, ExtraArgs...> lhs, Container<RhsValue, ExtraArgs...> rhs, Fun f)
 	{
 		OutContainer out;
@@ -71,12 +71,12 @@ namespace functional_impl
 		auto rhsIt = rhs.begin();
 		while (lhsIt != lhs.end() && rhsIt != rhs.end())
 		{
-			out.push_back(f(*lhsIt, *rhsIt))
+			out.push_back(f(*lhsIt, *rhsIt));
 		}
 		return out;
 	}
 
-	template<typename OutContainer = Container<std::pair<LhsValue, RhsValue>, ExtraArgs...>, template<typename...> class Container, typename LhsValue, typename RhsValue, typename... ExtraArgs>
+	template<template<typename...> class Container, typename LhsValue, typename RhsValue, typename... ExtraArgs, typename OutContainer = Container<std::pair<LhsValue, RhsValue>, ExtraArgs...>>
 	OutContainer zip(Container<LhsValue, ExtraArgs...> lhs, Container<RhsValue, ExtraArgs...> rhs)
 	{
 		return zipWith(lhs, rhs, [](LhsValue l, RhsValue r) { return std::make_pair(l, r); });

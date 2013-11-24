@@ -37,9 +37,8 @@ int main(const int argc, const char* argv[])
 	std::cout << factorial(4) << std::endl;
 	std::cout << factorial(uint64_t(20)) << std::endl;
 
-
-//	auto v12 = functional::zip(v, v1);
-//	auto v1and2 = functional::zipWith(v, v1, [](int a, int b) { return a + b; });
+	auto v12 = functional::zip(v, v1);
+	auto v1and2 = functional::zipWith(v, v1, [](int a, int b) { return a + b; });
 
 	return 0;
 }
