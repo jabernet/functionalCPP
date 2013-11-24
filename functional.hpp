@@ -50,63 +50,13 @@ namespace functional
     //! zip :: [a] -> [b] -> [(a,b)]
     template<typename LhsContainer, typename RhsContainer>
     auto zip(const LhsContainer& lhs, const RhsContainer& rhs) -> decltype(functional_impl::zip(lhs, rhs));
-
-    
-
+  
     template<typename T>
-    class Range
-    {
-    public:
-        Range(T from, T to)
-            : m_from(from)
-            , m_to(to)
-        {
-        }
-
-        class Itr
-        {
-        public:
-            bool operator!= (const Itr& other) const
-            {
-                return m_pos != other.m_pos;
-            }
-
-            T operator* () const
-            {
-                return m_pos;
-            }
-
-            const Itr& operator++ ()
-            {
-                ++m_pos;
-                return *this;
-            }
-
-        private:
-            friend class Range<T>;
-
-            Itr(T pos)
-                : m_pos(pos)
-            {
-            }
-
-            T m_pos;
-        };
-
-        Itr begin() const { return Itr(m_from); }
-        Itr end() const { return Itr(m_to); }
-
-    private:
-        const T m_from;
-        const T m_to;
-    };
+    class Range;
 
     //! range :: a -> b -> [a..b]
     template<typename T>
-    Range<T> range(T from, T to)
-    {
-        return Range<T>(from, to);
-    }
+    Range<T> range(T from, T to);
 };
 
 template<typename Fun, typename Iteratable>
@@ -143,6 +93,60 @@ template<typename LhsContainer, typename RhsContainer>
 auto functional::zip(const LhsContainer& lhs, const RhsContainer& rhs) -> decltype(functional_impl::zip(lhs, rhs))
 {
     return functional_impl::zip(lhs, rhs);
+}
+
+template<typename T>
+class functional::Range
+{
+public:
+    Range(T from, T to)
+        : m_from(from)
+        , m_to(to)
+    {
+    }
+
+    class Itr
+    {
+    public:
+        bool operator!= (const Itr& other) const
+        {
+            return m_pos != other.m_pos;
+        }
+
+        T operator* () const
+        {
+            return m_pos;
+        }
+
+        const Itr& operator++ ()
+        {
+            ++m_pos;
+            return *this;
+        }
+
+    private:
+        friend class Range<T>;
+
+        Itr(T pos)
+            : m_pos(pos)
+        {
+        }
+
+        T m_pos;
+    };
+
+    Itr begin() const { return Itr(m_from); }
+    Itr end() const { return Itr(m_to); }
+
+private:
+    const T m_from;
+    const T m_to;
+};
+
+template<typename T>
+functional::Range<T> functional::range(T from, T to)
+{
+    return { from, to };
 }
 
 #endif // _FUNCTIONAL_HPP_
