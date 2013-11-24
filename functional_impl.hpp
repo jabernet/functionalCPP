@@ -57,7 +57,7 @@ namespace functional_impl
 	}	
 
 	template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
-	OutValue foldr(Fun f, OutValue neutralValue, Iteratable<InValue, ExtraArgs...> iteratable)
+	OutValue foldr(Fun f, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
 	{
 		OutValue res = neutralValue;
 		for (InValue value : iteratable)
@@ -68,7 +68,7 @@ namespace functional_impl
 	}
 
 	template<template<typename...> class Iteratable, typename Fun, typename InValue, typename OutValue, typename... ExtraArgs>
-	OutValue foldl(Fun f, OutValue neutralValue, Iteratable<InValue, ExtraArgs...> iteratable)
+	OutValue foldl(Fun f, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
 	{
 		OutValue res = neutralValue;
 		for (InValue value : iteratable)
@@ -79,7 +79,7 @@ namespace functional_impl
 	}
 
 	template<typename Fun, template<typename...> class Container, typename LhsValue, typename RhsValue, typename OutValue = decltype(std::declval<Fun>()(std::declval<LhsValue>(), std::declval<RhsValue>())), typename... ExtraArgs1, typename... ExtraArgs2, typename OutContainer = Container<OutValue>>
-	OutContainer zipWith(Fun f, Container<LhsValue, ExtraArgs1...> lhs, Container<RhsValue, ExtraArgs2...> rhs)
+	OutContainer zipWith(Fun f, const Container<LhsValue, ExtraArgs1...>& lhs, const Container<RhsValue, ExtraArgs2...>& rhs)
 	{
 		OutContainer out;
 		auto lhsIt = lhs.begin();
@@ -93,7 +93,7 @@ namespace functional_impl
 	}
 
 	template<template<typename...> class Container, typename LhsValue, typename RhsValue, typename... ExtraArgs1, typename... ExtraArgs2, typename OutContainer = Container<std::pair<LhsValue, RhsValue>>>
-	OutContainer zip(Container<LhsValue, ExtraArgs1...> lhs, Container<RhsValue, ExtraArgs2...> rhs)
+	OutContainer zip(const Container<LhsValue, ExtraArgs1...>& lhs, const Container<RhsValue, ExtraArgs2...>& rhs)
     {
 		return zipWith([](LhsValue l, RhsValue r) { return std::make_pair(l, r); }, lhs, rhs);
 	}

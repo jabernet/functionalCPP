@@ -23,11 +23,11 @@ namespace functional
 
 	//! zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
     template<typename Fun, typename LhsContainer, typename RhsContainer>
-    auto zipWith(Fun f, LhsContainer lhs, RhsContainer rhs) -> decltype(functional_impl::zipWith(f, lhs, rhs));
+    auto zipWith(Fun f, const LhsContainer& lhs, const RhsContainer& rhs) -> decltype(functional_impl::zipWith(f, lhs, rhs));
 
 	//! zip :: [a] -> [b] -> (a -> b -> c) -> [c]
     template<typename LhsContainer, typename RhsContainer>
-    auto zip(LhsContainer lhs, RhsContainer rhs) -> decltype(functional_impl::zip(lhs, rhs));
+    auto zip(const LhsContainer& lhs, const RhsContainer& rhs) -> decltype(functional_impl::zip(lhs, rhs));
 
     
 
@@ -112,13 +112,13 @@ OutValue functional::foldl(Fun f, OutValue neutralValue, const Iteratable& itera
 }
 
 template<typename Fun, typename LhsContainer, typename RhsContainer>
-auto functional::zipWith(Fun f, LhsContainer lhs, RhsContainer rhs) -> decltype(functional_impl::zipWith(f, lhs, rhs))
+auto functional::zipWith(Fun f, const LhsContainer& lhs, const RhsContainer& rhs) -> decltype(functional_impl::zipWith(f, lhs, rhs))
 {
 	return functional_impl::zipWith(f, lhs, rhs);
 }
 
 template<typename LhsContainer, typename RhsContainer>
-auto functional::zip(LhsContainer lhs, RhsContainer rhs) -> decltype(functional_impl::zip(lhs, rhs))
+auto functional::zip(const LhsContainer& lhs, const RhsContainer& rhs) -> decltype(functional_impl::zip(lhs, rhs))
 {
 	return functional_impl::zip(lhs, rhs);
 }
