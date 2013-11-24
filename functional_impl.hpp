@@ -1,0 +1,86 @@
+#ifndef _FUNCTIONAL_IMPL_HPP_
+#define _FUNCTIONAL_IMPL_HPP_
+
+namespace functional_impl
+{
+	template < typename COut, typename CIn >
+	auto reserve(COut& outc, CIn inc) -> decltype(outc.reserve(inc.size()))
+	{
+		outc.reserve(inc.size());
+	}
+
+	static void reserve(...)
+	{
+	}
+
+	template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType = decltype(std::declval<MapFnType>()(std::declval<ValueType>())), typename... MoreTypes, typename OutputType = ContainerType<ResultType, MoreTypes...> >
+	OutputType map(const ContainerType<ValueType, MoreTypes...>& input, MapFnType fun)
+	{
+		typedef ContainerType<ValueType, MoreTypes...> InputType;
+		OutputType output;
+		reserve(output, input);
+		for (const ValueType& value : input)
+		{
+			output.push_back(fun(value));
+		}
+		return output;
+	}
+
+	template<template<typename, typename ...> class ContainerType, typename ValueType, typename ResultType, typename... MoreTypes>
+	auto map(const ContainerType<ValueType, MoreTypes...>& input, ResultType(ValueType::*fun)() const)->ContainerType<ResultType, MoreTypes...>
+	{
+		typedef ContainerType<ValueType, MoreTypes...> InputType;
+		typedef ContainerType<ResultType, MoreTypes...> OutputType;
+		OutputType output;
+		reserve(output, input);
+		for (const ValueType& value : input)
+		{
+			output.push_back((value.*fun)());
+		}
+		return output;
+	}
+	
+
+	template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
+	OutValue foldr(Fun f, OutValue neutralValue, Iteratable<InValue, ExtraArgs...> iteratable)
+	{
+		OutValue res = neutralValue;
+		for (InValue value : iteratable)
+		{
+			res = f(value, res);
+		}
+		return res;
+	}
+
+	template<template<typename...> class Iteratable, typename Fun, typename InValue, typename OutValue, typename... ExtraArgs>
+	OutValue foldl(Fun f, OutValue neutralValue, Iteratable<InValue, ExtraArgs...> iteratable)
+	{
+		OutValue res = neutralValue;
+		for (InValue value : iteratable)
+		{
+			res = f(res, value);
+		}
+		return res;
+	}
+
+	template<typename OutContainer = Container<OutValue, ExtraArgs...>, template<typename...> class Container, typename Fun, typename LhsValue, typename RhsValue, typename OutValue = decltype(std::declval<Fun>()(std::declval<LhsValue>(), std::declval<RhsValue>())), typename... ExtraArgs>
+	OutContainer zipWith(Container<LhsValue, ExtraArgs...> lhs, Container<RhsValue, ExtraArgs...> rhs, Fun f)
+	{
+		OutContainer out;
+		auto lhsIt = lhs.begin();
+		auto rhsIt = rhs.begin();
+		while (lhsIt != lhs.end() && rhsIt != rhs.end())
+		{
+			out.push_back(f(*lhsIt, *rhsIt))
+		}
+		return out;
+	}
+
+	template<typename OutContainer = Container<std::pair<LhsValue, RhsValue>, ExtraArgs...>, template<typename...> class Container, typename LhsValue, typename RhsValue, typename... ExtraArgs>
+	OutContainer zip(Container<LhsValue, ExtraArgs...> lhs, Container<RhsValue, ExtraArgs...> rhs)
+	{
+		return zipWith(lhs, rhs, [](LhsValue l, RhsValue r) { return std::make_pair(l, r); });
+	}
+};
+
+#endif // _FUNCTIONAL_IMPL_HPP_

@@ -1,20 +1,17 @@
 #ifndef _FUNCTIONAL_HPP_
 #define _FUNCTIONAL_HPP_
 
-
 namespace functional
 {
+	//! map :: [a] -> (a -> b) -> [b]
 	template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType = decltype(std::declval<MapFnType>()(std::declval<ValueType>())), typename... MoreTypes, typename OutputType = ContainerType<ResultType, MoreTypes...> >
 	OutputType map(const ContainerType<ValueType, MoreTypes...>& input, MapFnType fun);
 
-	template<template<typename, typename ...> class ContainerType, typename ValueType, typename ResultType, typename... MoreTypes>
-	auto map(const ContainerType<ValueType, MoreTypes...>& input, ResultType(ValueType::*fun)() const)->ContainerType<ResultType, MoreTypes...>;
-
-	//! foldr :: 
+	//! foldr :: (a -> b -> b) -> b -> [a] -> b
 	template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
 	OutValue foldr(Fun f, OutValue neutralValue, Iteratable<InValue, ExtraArgs...> iteratable);
 
-	//! foldl :: 
+	//! foldl :: (a -> b -> a) -> a -> [b] -> a
 	template<template<typename...> class Iteratable, typename Fun, typename InValue, typename OutValue, typename... ExtraArgs>
 	OutValue foldl(Fun f, OutValue neutralValue, Iteratable<InValue, ExtraArgs...> iteratable);
 
@@ -74,6 +71,7 @@ namespace functional
 		const T m_to;
 	};
 
+	//! range :: a -> b -> [a..b]
 	template<typename T>
 	Range<T> range(T from, T to)
 	{
@@ -81,83 +79,37 @@ namespace functional
 	}
 };
 
-template < typename COut, typename CIn >
-auto reserve(COut& outc, CIn inc) -> decltype(outc.reserve(inc.size()))
-{
-	outc.reserve(inc.size());
-}
 
-static void reserve(...)
-{
-}
+#include "functional_impl.hpp"
 
 template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType, typename... MoreTypes, typename OutputType>
 OutputType functional::map(const ContainerType<ValueType, MoreTypes...>& input, MapFnType fun)
 {
-	typedef ContainerType<ValueType, MoreTypes...> InputType;
-	OutputType output;
-	reserve(output, input);
-	for (const ValueType& value : input)
-	{
-		output.push_back(fun(value));
-	}
-	return output;
-}
-
-template<template<typename, typename ...> class ContainerType, typename ValueType, typename ResultType, typename... MoreTypes>
-auto functional::map(const ContainerType<ValueType, MoreTypes...>& input, ResultType(ValueType::*fun)() const) -> ContainerType<ResultType, MoreTypes...>
-{
-	typedef ContainerType<ValueType, MoreTypes...> InputType;
-	typedef ContainerType<ResultType, MoreTypes...> OutputType;
-	OutputType output;
-	reserve(output, input);
-	for (const ValueType& value : input)
-	{
-		output.push_back((value.*fun)());
-	}
-	return output;
+	return functional_impl::map(input, fun);
 }
 
 template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
 OutValue functional::foldr(Fun f, OutValue neutralValue, Iteratable<InValue, ExtraArgs...> iteratable)
 {
-	OutValue res = neutralValue;
-	for (InValue value : iteratable)
-	{
-		res = f(value, res);
-	}
-	return res;
+	return functional_impl::foldr(f, neutralValue, iteratable);
 }
 
 template<template<typename...> class Iteratable, typename Fun, typename InValue, typename OutValue, typename... ExtraArgs>
 OutValue functional::foldl(Fun f, OutValue neutralValue, Iteratable<InValue, ExtraArgs...> iteratable)
 {
-	OutValue res = neutralValue;
-	for (InValue value : iteratable)
-	{
-		res = f(res, value);
-	}
-	return res;
+	return functional_impl::foldl(f, neutralValue, iteratable);
 }
 
 template<typename OutContainer = Container<OutValue, ExtraArgs...>, template<typename...> class Container, typename Fun, typename LhsValue, typename RhsValue, typename OutValue, typename... ExtraArgs>
 OutContainer functional::zipWith(Container<LhsValue, ExtraArgs...> lhs, Container<RhsValue, ExtraArgs...> rhs, Fun f)
 {
-	OutContainer out;
-	auto lhsIt = lhs.begin();
-	auto rhsIt = rhs.begin();
-	while (lhsIt != lhs.end() && rhsIt != rhs.end())
-	{
-		out.push_back(f(*lhsIt, *rhsIt))
-	}
-	return out;
+	return functional_impl::zipWith(lhs, rhs, f);
 }
 
 template<typename OutContainer = Container<std::pair<LhsValue, RhsValue>, ExtraArgs...>, template<typename...> class Container, typename LhsValue, typename RhsValue, typename... ExtraArgs>
 OutContainer functional::zip(Container<LhsValue, ExtraArgs...> lhs, Container<RhsValue, ExtraArgs...> rhs)
 {
-	return zipWith(lhs, rhs, [](LhsValue l, RhsValue r) { return std::make_pair(l, r); });
+	return functional_impl::zip(lhs, rhs);
 }
 
-
-#endif
+#endif // _FUNCTIONAL_HPP_
