@@ -1,8 +1,28 @@
 #ifndef _FUNCTIONAL_IMPL_HPP_
 #define _FUNCTIONAL_IMPL_HPP_
 
+
+
 namespace functional_impl
 {
+	template<template<typename, typename ...> class Iteratable, typename ValueType, typename Fun, typename... MoreTypes>
+	void apply(Fun fun, const Iteratable<ValueType, MoreTypes...>& input)
+	{
+		for (const ValueType& value : input)
+		{
+			fun(value);
+		}
+	}
+
+	template<template<typename, typename ...> class ContainerType, typename ValueType, typename ReturnType, typename... MoreTypes>
+	void apply(ReturnType(ValueType::*fun)() const, const ContainerType<ValueType, MoreTypes...>& input)
+	{
+		for (const ValueType& value : input)
+		{
+			(value.*fun)();
+		}
+	}
+
 	template < typename COut, typename CIn >
 	auto reserve(COut& outc, CIn inc) -> decltype(outc.reserve(inc.size()))
 	{
@@ -38,8 +58,7 @@ namespace functional_impl
 			output.push_back((value.*fun)());
 		}
 		return output;
-	}
-	
+	}	
 
 	template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
 	OutValue foldr(Fun f, OutValue neutralValue, Iteratable<InValue, ExtraArgs...> iteratable)

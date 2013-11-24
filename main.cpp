@@ -28,6 +28,27 @@ int main(const int argc, const char* argv[])
 	auto fac1 = functional::foldl([](int a, int b) { return a * b; }, 1, v);
 
 	auto vs = functional::map([](int a) { return std::to_string(a); }, v);
+
+	std::cout << typeid(vs).name() << std::endl;
+	std::cout << typeid(std::vector<std::string>).name() << std::endl;
+
+	std::vector<std::string> vvs{ "1", "2", "3" };
+
+	functional::apply([](int i) { printf("%d", i);  }, v1);
+	functional::apply(&std::string::length, vs);
+	struct Test
+	{ 
+		static void d(std::string s)
+		{
+			std::cout << s << " ";
+		}
+	};
+	functional::apply(Test::d, vs);
+
+	auto cs = functional::map(&std::string::length, vvs);
+
+//	std::cout << typeid(cs).name() << std::endl;
+
 	auto ls = functional::map([](int a) { return std::to_string(a); }, l);
 
 	std::cout << sum1 << std::endl;

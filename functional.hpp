@@ -1,11 +1,17 @@
 #ifndef _FUNCTIONAL_HPP_
 #define _FUNCTIONAL_HPP_
 
+#include "functional_impl.hpp"
+
 namespace functional
 {
+	//! apply :: (a -> b) -> [a]
+	template<typename Fun, template<typename, typename ...> class Iteratable, typename ValueType, typename... MoreTypes>
+	void apply(Fun fun, const Iteratable<ValueType, MoreTypes...>& input);
+
 	//! map :: (a -> b) -> [a] -> [b]
-	template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType = decltype(std::declval<MapFnType>()(std::declval<ValueType>())), typename... MoreTypes, typename OutputType = ContainerType<ResultType, MoreTypes...> >
-	OutputType map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input);
+	template<typename MapFnType, template<typename, typename ...> class ContainerType, typename ValueType, typename... MoreTypes>
+	auto map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input) -> decltype(functional_impl::map(fun, input));
 
 	//! foldr :: (a -> b -> b) -> b -> [a] -> b
 	template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
@@ -79,11 +85,14 @@ namespace functional
 	}
 };
 
+template<typename Fun, template<typename, typename ...> class Iteratable, typename ValueType, typename... MoreTypes>
+void functional::apply(Fun fun, const Iteratable<ValueType, MoreTypes...>& input)
+{
+	return functional_impl::apply(fun, input);
+}
 
-#include "functional_impl.hpp"
-
-template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType, typename... MoreTypes, typename OutputType>
-OutputType functional::map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input)
+template<typename MapFnType, template<typename, typename ...> class ContainerType, typename ValueType, typename... MoreTypes>
+auto functional::map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input) -> decltype(functional_impl::map(fun, input))
 {
 	return functional_impl::map(fun, input);
 }
