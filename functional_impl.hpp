@@ -1,8 +1,6 @@
 #ifndef _FUNCTIONAL_IMPL_HPP_
 #define _FUNCTIONAL_IMPL_HPP_
 
-
-
 namespace functional_impl
 {
 	template<template<typename, typename ...> class Iteratable, typename ValueType, typename Fun, typename... MoreTypes>
@@ -29,15 +27,14 @@ namespace functional_impl
 		outc.reserve(inc.size());
 	}
 
-	static void reserve(...)
+    void reserve(...)
 	{
 	}
 
-	template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType = decltype(std::declval<MapFnType>()(std::declval<ValueType>())), typename... MoreTypes, typename OutputType = ContainerType<ResultType, MoreTypes...> >
-	OutputType map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input)
+	template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType = decltype(std::declval<MapFnType>()(std::declval<ValueType>())), typename... MoreTypes>
+	ContainerType<ResultType> map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input)
 	{
-		typedef ContainerType<ValueType, MoreTypes...> InputType;
-		OutputType output;
+		ContainerType<ResultType> output;
 		reserve(output, input);
 		for (const ValueType& value : input)
 		{
@@ -47,10 +44,9 @@ namespace functional_impl
 	}
 
 	template<template<typename, typename ...> class ContainerType, typename ValueType, typename ResultType, typename... MoreTypes>
-	auto map(ResultType(ValueType::*fun)() const, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType, MoreTypes...>
+	auto map(ResultType(ValueType::*fun)() const, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType>
 	{
-		typedef ContainerType<ValueType, MoreTypes...> InputType;
-		typedef ContainerType<ResultType, MoreTypes...> OutputType;
+		typedef ContainerType<ResultType> OutputType;
 		OutputType output;
 		reserve(output, input);
 		for (const ValueType& value : input)
@@ -82,8 +78,8 @@ namespace functional_impl
 		return res;
 	}
 
-	template<template<typename...> class Container, typename Fun, typename LhsValue, typename RhsValue, typename OutValue = decltype(std::declval<Fun>()(std::declval<LhsValue>(), std::declval<RhsValue>())), typename... ExtraArgs, typename OutContainer = Container<OutValue, ExtraArgs...>>
-	OutContainer zipWith(Container<LhsValue, ExtraArgs...> lhs, Container<RhsValue, ExtraArgs...> rhs, Fun f)
+	template<template<typename...> class Container, typename Fun, typename LhsValue, typename RhsValue, typename OutValue = decltype(std::declval<Fun>()(std::declval<LhsValue>(), std::declval<RhsValue>())), typename... ExtraArgs1, typename... ExtraArgs2, typename OutContainer = Container<OutValue>>
+	OutContainer zipWith(Container<LhsValue, ExtraArgs1...> lhs, Container<RhsValue, ExtraArgs2...> rhs, Fun f)
 	{
 		OutContainer out;
 		auto lhsIt = lhs.begin();
@@ -96,9 +92,9 @@ namespace functional_impl
 		return out;
 	}
 
-	template<template<typename...> class Container, typename LhsValue, typename RhsValue, typename... ExtraArgs, typename OutContainer = Container<std::pair<LhsValue, RhsValue>, ExtraArgs...>>
-	OutContainer zip(Container<LhsValue, ExtraArgs...> lhs, Container<RhsValue, ExtraArgs...> rhs)
-	{
+	template<template<typename...> class Container, typename LhsValue, typename RhsValue, typename... ExtraArgs1, typename... ExtraArgs2, typename OutContainer = Container<std::pair<LhsValue, RhsValue>>>
+	OutContainer zip(Container<LhsValue, ExtraArgs1...> lhs, Container<RhsValue, ExtraArgs2...> rhs)
+    {
 		return zipWith(lhs, rhs, [](LhsValue l, RhsValue r) { return std::make_pair(l, r); });
 	}
 };

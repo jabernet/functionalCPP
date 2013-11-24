@@ -15,6 +15,8 @@ T factorial(T n)
 	return functional::foldl([](T a, T b) { return a*b; }, (T)1, functional::range((T)1, n + 1));
 }
 
+template class std::basic_string<char, std::char_traits<char>, std::allocator<char>>;
+
 int main(const int argc, const char* argv[])
 {
 	std::vector<int> v { 1, 2, 3, 4, };
@@ -24,9 +26,12 @@ int main(const int argc, const char* argv[])
 
 	auto sum1 = functional::foldr([] (int a, int b) { return a + b; }, 0, v);
 	auto sum2 = functional::foldl([] (int a, int b) { return a + b; }, 0, v);
+	auto sum3 = functional::foldl([] (int a, int b) { return a + b; }, 0, l);
 
 	auto fac1 = functional::foldl([](int a, int b) { return a * b; }, 1, v);
 
+    std::cout << sum1 << " " << sum2 << " " << sum3 << " " << fac1 << std::endl;
+    
 	auto vs = functional::map([](int a) { return std::to_string(a); }, v);
 
 	std::cout << typeid(vs).name() << std::endl;
@@ -47,9 +52,9 @@ int main(const int argc, const char* argv[])
 
 	auto cs = functional::map(&std::string::length, vvs);
 
-//	std::cout << typeid(cs).name() << std::endl;
+	std::cout << typeid(cs).name() << std::endl;
 
-	auto ls = functional::map([](int a) { return std::to_string(a); }, l);
+//	auto ls = functional::map([](int a) { return std::to_string(a); }, l);
 
 	std::cout << sum1 << std::endl;
 	std::cout << sum2 << std::endl;
