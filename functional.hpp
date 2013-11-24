@@ -3,9 +3,9 @@
 
 namespace functional
 {
-	//! map :: [a] -> (a -> b) -> [b]
+	//! map :: (a -> b) -> [a] -> [b]
 	template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType = decltype(std::declval<MapFnType>()(std::declval<ValueType>())), typename... MoreTypes, typename OutputType = ContainerType<ResultType, MoreTypes...> >
-	OutputType map(const ContainerType<ValueType, MoreTypes...>& input, MapFnType fun);
+	OutputType map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input);
 
 	//! foldr :: (a -> b -> b) -> b -> [a] -> b
 	template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
@@ -83,9 +83,9 @@ namespace functional
 #include "functional_impl.hpp"
 
 template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType, typename... MoreTypes, typename OutputType>
-OutputType functional::map(const ContainerType<ValueType, MoreTypes...>& input, MapFnType fun)
+OutputType functional::map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input)
 {
-	return functional_impl::map(input, fun);
+	return functional_impl::map(fun, input);
 }
 
 template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>

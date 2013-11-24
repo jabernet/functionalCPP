@@ -14,7 +14,7 @@ namespace functional_impl
 	}
 
 	template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType = decltype(std::declval<MapFnType>()(std::declval<ValueType>())), typename... MoreTypes, typename OutputType = ContainerType<ResultType, MoreTypes...> >
-	OutputType map(const ContainerType<ValueType, MoreTypes...>& input, MapFnType fun)
+	OutputType map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input)
 	{
 		typedef ContainerType<ValueType, MoreTypes...> InputType;
 		OutputType output;
@@ -27,7 +27,7 @@ namespace functional_impl
 	}
 
 	template<template<typename, typename ...> class ContainerType, typename ValueType, typename ResultType, typename... MoreTypes>
-	auto map(const ContainerType<ValueType, MoreTypes...>& input, ResultType(ValueType::*fun)() const)->ContainerType<ResultType, MoreTypes...>
+	auto map(ResultType(ValueType::*fun)() const, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType, MoreTypes...>
 	{
 		typedef ContainerType<ValueType, MoreTypes...> InputType;
 		typedef ContainerType<ResultType, MoreTypes...> OutputType;

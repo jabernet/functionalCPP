@@ -27,8 +27,8 @@ int main(const int argc, const char* argv[])
 
 	auto fac1 = functional::foldl([](int a, int b) { return a * b; }, 1, v);
 
-	auto vs = functional::map(v, [](int a) { return std::to_string(a); });
-	auto ls = functional::map(l, [](int a) { return std::to_string(a); });
+	auto vs = functional::map([](int a) { return std::to_string(a); }, v);
+	auto ls = functional::map([](int a) { return std::to_string(a); }, l);
 
 	std::cout << sum1 << std::endl;
 	std::cout << sum2 << std::endl;
