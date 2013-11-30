@@ -40,11 +40,11 @@ THE SOFTWARE.
 #include <cstddef>
 #include <tuple>
 
-// maximum number of elements in tuple/array that will be 'unrolled' using recursive templates at compile time
-static constexpr std::size_t UNROLL_MAX = 100;
-
 namespace functional_impl
 {
+    // maximum number of elements in tuple/array that will be 'unrolled' using recursive templates at compile time
+    static constexpr std::size_t UNROLL_MAX = 100;
+
     namespace helpers
     {
         // helper struct to allow recursion using overload resolution
@@ -75,18 +75,6 @@ namespace functional_impl
                 fun(input[0]);
             }
         }
-
-        // template<std::size_t N, typename Fun, template<typename...> class TupleType, typename... ValueTypes, std::size_t I = N>
-        // void apply(Fun fun, const TupleType<ValueTypes...>& input, index<I> = index<N>())
-        // {
-        //     fun(std::get<N-I>(input));
-        //     apply<N>(fun, input, index<I-1>());
-        // }
-
-        // template<std::size_t N, typename Fun, template<typename...> class TupleType, typename... ValueTypes>
-        // void apply(Fun fun, const TupleType<ValueTypes...>& input, index<0>)
-        // {
-        // }
     };
 
     template<template<typename, typename ...> class Iteratable, typename ValueType, typename Fun, typename... MoreTypes>
@@ -190,5 +178,9 @@ namespace functional_impl
         return zipWith([](LhsValue l, RhsValue r) { return std::make_pair(l, r); }, lhs, rhs);
     }
 };
+
+#undef forceinline
+#undef noinline
+#undef PACKED
 
 #endif // _FUNCTIONAL_IMPL_HPP_
