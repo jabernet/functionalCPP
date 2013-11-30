@@ -23,8 +23,72 @@ THE SOFTWARE.
 #ifndef _FUNCTIONAL_IMPL_HPP_
 #define _FUNCTIONAL_IMPL_HPP_
 
+#if defined(__GNUC__)
+    #define forceinline __attribute__((always_inline)) inline
+    #define noinline __attribute__((noinline)) 
+    #define PACKED __attribute__ ((__packed__))
+#elif defined(_MSC_VER)
+    #define forceinline __forceinline 
+    #define noinline __declspec(noinline) 
+    #define PACKED
+#else 
+    #define forceinline inline 
+    #define noinline 
+    #define PACKED
+#endif
+
+#include <cstddef>
+#include <tuple>
+
+// maximum number of elements in tuple/array that will be 'unrolled' using recursive templates at compile time
+static constexpr std::size_t UNROLL_MAX = 100;
+
 namespace functional_impl
 {
+    namespace helpers
+    {
+        // helper struct to allow recursion using overload resolution
+        template<std::size_t>
+        struct index {} PACKED;
+
+        // methods
+        template<std::size_t N, typename Fun, typename Gettable, std::size_t I = N>
+        forceinline auto apply(Fun fun, const Gettable& input, index<I> = index<N>())
+            -> typename std::enable_if<(N <= UNROLL_MAX)>::type
+        {
+            fun(std::get<N-I>(input));
+            apply<N>(fun, input, index<I-1>());
+        }
+
+        template<std::size_t N, typename Fun, typename Gettable>
+        forceinline auto apply(Fun, const Gettable&, index<0>)
+            -> typename std::enable_if<(N <= UNROLL_MAX)>::type
+        {
+        }
+
+        template<std::size_t N, typename Fun, typename Gettable>
+        forceinline auto apply(Fun fun, const Gettable& input)
+            -> typename std::enable_if<(N > UNROLL_MAX)>::type
+        {
+            for(int i = 0; i < N; ++i)
+            {
+                fun(input[0]);
+            }
+        }
+
+        // template<std::size_t N, typename Fun, template<typename...> class TupleType, typename... ValueTypes, std::size_t I = N>
+        // void apply(Fun fun, const TupleType<ValueTypes...>& input, index<I> = index<N>())
+        // {
+        //     fun(std::get<N-I>(input));
+        //     apply<N>(fun, input, index<I-1>());
+        // }
+
+        // template<std::size_t N, typename Fun, template<typename...> class TupleType, typename... ValueTypes>
+        // void apply(Fun fun, const TupleType<ValueTypes...>& input, index<0>)
+        // {
+        // }
+    };
+
     template<template<typename, typename ...> class Iteratable, typename ValueType, typename Fun, typename... MoreTypes>
     void apply(Fun fun, const Iteratable<ValueType, MoreTypes...>& input)
     {
@@ -34,13 +98,25 @@ namespace functional_impl
         }
     }
 
-    template<template<typename, typename ...> class ContainerType, typename ValueType, typename ReturnType, typename... MoreTypes>
+    template<template<typename, typename ...> class ContainerType, typename ValueType, typename ReturnType = void, typename... MoreTypes>
     void apply(ReturnType(ValueType::*fun)() const, const ContainerType<ValueType, MoreTypes...>& input)
     {
         for (const ValueType& value : input)
         {
             (value.*fun)();
         }
+    }
+
+    template<typename Fun, template<typename...> class TupleType, typename... ValueTypes>
+    void apply(Fun fun, const TupleType<ValueTypes...>& input)
+    {
+        helpers::apply<sizeof...(ValueTypes)>(fun, input);
+    }
+
+    template<typename Fun, template<typename,std::size_t> class Array, typename ValueType, std::size_t size>
+    void apply(Fun fun, const Array<ValueType, size>& input)
+    {
+        helpers::apply<size>(fun, input);
     }
 
     template < typename COut, typename CIn >

@@ -8,6 +8,8 @@
 #include <typeinfo>
 #include <string>
 #include <sstream>
+#include <functional>
+#include <array>
 
 #include "functional.hpp"
 
@@ -27,12 +29,28 @@ std::string to_string(T i)
     return stream.str();
 }
 
+struct Printer
+{
+    template<typename T>
+    void operator() (T t)
+    {
+        std::cout << t << " ";
+    }
+};
+
 int main(const int argc, const char* argv[])
 {
     std::vector<int> v { 1, 2, 3, 4, };
     std::vector<int> v1 { 1, 2, 3, 4, };
 
     std::list<int> l { 1, 2, 3, 4 };
+
+    std::tuple<int, int, int, int> it(std::make_tuple(1, 2, 3, 4));
+    std::tuple<int, std::string, int, std::string> mixt(std::make_tuple(1, "'2'", 3, "'4'"));
+
+    std::array<int, 4> a { 1, 2, 3, 4};
+    std::array<std::string, 500> ba;
+    ba.fill(std::string("-"));
 
     auto sum1 = functional::foldr([] (int a, int b) { return a + b; }, 0, v);
     auto sum2 = functional::foldl([] (int a, int b) { return a + b; }, 0, v);
@@ -59,6 +77,18 @@ int main(const int argc, const char* argv[])
         }
     };
     functional::apply(Test::d, vs);
+    std::cout << "apply tuple: ";
+    functional::apply([] (int i) { std::cout << i << " "; }, it);
+    std::cout << std::endl;
+    std::cout << "apply mixed: ";
+    functional::apply(Printer(), it);
+    std::cout << std::endl;
+    std::cout << "apply array: ";
+    functional::apply([] (int i) { std::cout << i << " "; }, a);
+    std::cout << std::endl;
+    std::cout << "apply big array: ";
+    functional::apply([] (std::string s) { std::cout << s << " "; }, ba);
+    std::cout << std::endl;
 
     auto cs = functional::map(&std::string::length, vvs);
 
