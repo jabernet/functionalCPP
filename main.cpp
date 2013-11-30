@@ -5,7 +5,9 @@
 #include <list>
 #include <stdint.h>
 #include <tuple>
+#include <typeinfo>
 #include <string>
+#include <sstream>
 
 #include "functional.hpp"
 
@@ -16,6 +18,14 @@ T factorial(T n)
 }
 
 template class std::basic_string<char, std::char_traits<char>, std::allocator<char>>;
+
+template<typename T>
+std::string to_string(T i)
+{
+    std::stringstream stream;
+    stream << i;
+    return stream.str();
+}
 
 int main(const int argc, const char* argv[])
 {
@@ -32,7 +42,7 @@ int main(const int argc, const char* argv[])
 
     std::cout << sum1 << " " << sum2 << " " << sum3 << " " << fac1 << std::endl;
     
-    auto vs = functional::map([](int a) { return std::to_string(a); }, v);
+    auto vs = functional::map([](int a) { return to_string(a); }, v);
 
     std::cout << typeid(vs).name() << std::endl;
     std::cout << typeid(std::vector<std::string>).name() << std::endl;
@@ -54,7 +64,7 @@ int main(const int argc, const char* argv[])
 
     std::cout << typeid(cs).name() << std::endl;
 
-//  auto ls = functional::map([](int a) { return std::to_string(a); }, l);
+    auto ls = functional::map([](int a) { return to_string(a); }, l);
 
     std::cout << sum1 << std::endl;
     std::cout << sum2 << std::endl;
