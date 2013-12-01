@@ -4,6 +4,7 @@
 #include <vector>
 #include <list>
 #include <stdint.h>
+#include <stdlib.h>
 #include <tuple>
 #include <typeinfo>
 #include <string>
@@ -29,8 +30,24 @@ T factorial(T n)
 
 template class std::basic_string<char, std::char_traits<char>, std::allocator<char>>;
 
+class string: public std::string
+{
+public:
+    using std::string::string;
+
+    template<typename... Args>
+    string(Args... args)
+        : std::string(args...)
+    {
+    }
+
+    void print() const { std::cout << *this << " "; }
+
+    int to_int() const { return atoi(c_str()); }
+};
+
 template<typename T>
-std::string to_string(T i)
+string to_string(T i)
 {
     std::stringstream stream;
     stream << i;
@@ -49,14 +66,6 @@ struct Printer
     {
         std::cout << t << " ";
     }
-};
-
-class string: public std::string
-{
-public:
-    using std::string::string;
-
-    void print() const { std::cout << *this << " "; }
 };
 
 
@@ -187,6 +196,53 @@ noinline void testApplyBigArrayFunctionPtr()
     std::cout << std::endl;
 }
 
+noinline void testMapVectorLambda()
+{
+    std::cout << "testMapVectorLambda: ";
+    auto res = functional::map([](int a) { return to_string(a); }, v);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+
+noinline void testMapVectorMemberFn()
+{
+    std::cout << "testMapVectorMemberFn: ";
+    auto res = functional::map(&string::to_int, vs);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+
+noinline void testMapVectorFunctionPtr()
+{
+    std::cout << "testMapVectorFunctionPtr: ";
+    auto res = functional::map(to_string<int>, v);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+
+noinline void testMapListLambda()
+{
+    std::cout << "testMapListLambda: ";
+    auto res = functional::map([](int a) { return to_string(a); }, l);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+
+noinline void testMapListMemberFn()
+{
+    std::cout << "testMapListMemberFn: ";
+    auto res = functional::map(&string::to_int, ls);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+
+noinline void testMapListFunctionPtr()
+{
+    std::cout << "testMapListFunctionPtr: ";
+    auto res = functional::map(to_string<int>, l);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
 
 int main(const int argc, const char* argv[])
 {
@@ -213,6 +269,13 @@ int main(const int argc, const char* argv[])
     testApplyBigArrayMemberFn();
     testApplyBigArrayFunctionPtr();
 
+    testMapVectorLambda();
+    testMapVectorMemberFn();
+    testMapVectorFunctionPtr();
+
+    testMapListLambda();
+    testMapListMemberFn();
+    testMapListFunctionPtr();
 
 
     auto sum1 = functional::foldr([] (int a, int b) { return a + b; }, 0, v);
