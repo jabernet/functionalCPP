@@ -47,16 +47,43 @@ namespace functional_impl
 
     namespace helpers
     {
+        // helper struct to apply function pointer, lambdas and member function pointers the same way
+        template<typename Fun>
+        struct Applicator
+        {
+            const Fun& f;
+
+            template<typename... Args>
+            auto operator () (const Args&... args) const -> decltype(f(args...))
+            {
+                return f(args...);
+            }
+        };
+
+        // specialization for member function pointers
+        template<typename ReturnType, typename ValueType>
+        struct Applicator<ReturnType(ValueType::*)() const>
+        {
+            typedef ReturnType(ValueType::*Fun)() const;
+
+            const Fun& f;
+
+            template<typename Arg>
+            auto operator () (const Arg& arg) const -> decltype((arg.*f)())
+            {
+                return (arg.*f)();
+            }
+        };
+
         // helper struct to allow recursion using overload resolution
         template<std::size_t>
         struct index {} PACKED;
 
-        // methods
         template<std::size_t N, typename Fun, typename Gettable, std::size_t I = N>
         forceinline auto apply(Fun fun, const Gettable& input, index<I> = index<N>())
             -> typename std::enable_if<(N <= UNROLL_MAX)>::type
         {
-            fun(std::get<N-I>(input));
+            helpers::Applicator<Fun>{fun}(std::get<N-I>(input));
             apply<N>(fun, input, index<I-1>());
         }
 
@@ -72,7 +99,7 @@ namespace functional_impl
         {
             for(int i = 0; i < N; ++i)
             {
-                fun(input[0]);
+                helpers::Applicator<Fun>{fun}(input[0]);
             }
         }
     };
@@ -82,16 +109,7 @@ namespace functional_impl
     {
         for (const ValueType& value : input)
         {
-            fun(value);
-        }
-    }
-
-    template<template<typename, typename ...> class ContainerType, typename ValueType, typename ReturnType = void, typename... MoreTypes>
-    void apply(ReturnType(ValueType::*fun)() const, const ContainerType<ValueType, MoreTypes...>& input)
-    {
-        for (const ValueType& value : input)
-        {
-            (value.*fun)();
+            helpers::Applicator<Fun>{fun}(value);
         }
     }
 

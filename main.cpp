@@ -45,7 +45,7 @@ void print(const std::string& s)
 struct Printer
 {
     template<typename T>
-    void operator() (T t)
+    void operator() (T t) const
     {
         std::cout << t << " ";
     }
@@ -124,13 +124,12 @@ noinline void testApplyTupleLambda()
     std::cout << std::endl;
 }
 
-// NOT YET IMPLEMENTED
-// noinline void testApplyTupleMemberFn()
-// {
-//     std::cout << "testApplyTupleMemberFn: ";
-//     functional::apply(&string::print, ts);
-//     std::cout << std::endl;
-// }
+noinline void testApplyTupleMemberFn()
+{
+    std::cout << "testApplyTupleMemberFn: ";
+    functional::apply(&string::print, ts);
+    std::cout << std::endl;
+}
 
 noinline void testApplyTupleFunctionPtr()
 {
@@ -153,13 +152,12 @@ noinline void testApplyArrayLambda()
     std::cout << std::endl;
 }
 
-// NOT YET IMPLEMENTED
-// noinline void testApplyArrayMemberFn()
-// {
-//     std::cout << "testApplyArrayMemberFn: ";
-//     functional::apply(&string::print, as);
-//     std::cout << std::endl;
-// }
+noinline void testApplyArrayMemberFn()
+{
+    std::cout << "testApplyArrayMemberFn: ";
+    functional::apply(&string::print, as);
+    std::cout << std::endl;
+}
 
 noinline void testApplyArrayFunctionPtr()
 {
@@ -175,13 +173,12 @@ noinline void testApplyBigArrayLambda()
     std::cout << std::endl;
 }
 
-// NOT YET IMPLEMENTED
-// noinline void testApplyBigArrayMemberFn()
-// {
-//     std::cout << "testApplyBigArrayMemberFn: ";
-//     functional::apply(&string::print, ba);
-//     std::cout << std::endl;
-// }
+noinline void testApplyBigArrayMemberFn()
+{
+    std::cout << "testApplyBigArrayMemberFn: ";
+    functional::apply(&string::print, ba);
+    std::cout << std::endl;
+}
 
 noinline void testApplyBigArrayFunctionPtr()
 {
@@ -189,6 +186,7 @@ noinline void testApplyBigArrayFunctionPtr()
     functional::apply(print, ba);
     std::cout << std::endl;
 }
+
 
 int main(const int argc, const char* argv[])
 {
@@ -203,16 +201,16 @@ int main(const int argc, const char* argv[])
     testApplyListFunctionPtr();
 
     testApplyTupleLambda();
-//    testApplyTupleMemberFn();
+    testApplyTupleMemberFn();
     testApplyTupleFunctionPtr();
     testApplyMixedTupleGenericFunctor();
 
     testApplyArrayLambda();
-//    testApplyArrayMemberFn();
+    testApplyArrayMemberFn();
     testApplyArrayFunctionPtr();
 
     testApplyBigArrayLambda();
-//    testApplyBigArrayMemberFn();
+    testApplyBigArrayMemberFn();
     testApplyBigArrayFunctionPtr();
 
 
