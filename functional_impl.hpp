@@ -136,55 +136,49 @@ namespace functional_impl
     {
     }
 
-    template<template<typename, typename ...> class ContainerType, typename ValueType, typename MapFnType, typename ResultType = decltype(std::declval<MapFnType>()(std::declval<ValueType>())), typename... MoreTypes>
-    auto map(MapFnType fun, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType>
+    template<template<typename, typename ...> class ContainerType, typename ValueType, typename Fun, typename ResultType = decltype(std::declval<helpers::Applicator<Fun>>()(std::declval<ValueType>())), typename... MoreTypes>
+    auto map(Fun fun, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType>
     {
         ContainerType<ResultType> output;
         reserve(output, input);
         for (const ValueType& value : input)
         {
-            output.push_back(fun(value));
+            output.push_back(helpers::Applicator<Fun>{fun}(value));
         }
         return output;
     }
 
-    template<template<typename, typename ...> class ContainerType, typename ValueType, typename ResultType, typename... MoreTypes>
-    auto map(ResultType(ValueType::*fun)() const, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType>
-    {
-        return map([fun] (ValueType v) { return (v.*fun)(); }, input);
-    }
-
     template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
-    OutValue foldr(Fun f, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
+    OutValue foldr(Fun fun, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
     {
         OutValue res = neutralValue;
         for (InValue value : iteratable)
         {
-            res = f(value, res);
+            res = fun(value, res);
         }
         return res;
     }
 
     template<template<typename...> class Iteratable, typename Fun, typename InValue, typename OutValue, typename... ExtraArgs>
-    OutValue foldl(Fun f, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
+    OutValue foldl(Fun fun, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
     {
         OutValue res = neutralValue;
         for (InValue value : iteratable)
         {
-            res = f(res, value);
+            res = fun(res, value);
         }
         return res;
     }
 
     template<typename Fun, template<typename...> class Container, typename LhsValue, typename RhsValue, typename OutValue = decltype(std::declval<Fun>()(std::declval<LhsValue>(), std::declval<RhsValue>())), typename... ExtraArgs1, typename... ExtraArgs2, typename OutContainer = Container<OutValue>>
-    OutContainer zipWith(Fun f, const Container<LhsValue, ExtraArgs1...>& lhs, const Container<RhsValue, ExtraArgs2...>& rhs)
+    OutContainer zipWith(Fun fun, const Container<LhsValue, ExtraArgs1...>& lhs, const Container<RhsValue, ExtraArgs2...>& rhs)
     {
         OutContainer out;
         auto lhsIt = lhs.begin();
         auto rhsIt = rhs.begin();
         while (lhsIt != lhs.end() && rhsIt != rhs.end())
         {
-            out.push_back(f(*lhsIt, *rhsIt));
+            out.push_back(fun(*lhsIt, *rhsIt));
             ++lhsIt; ++rhsIt;
         }
         return out;
