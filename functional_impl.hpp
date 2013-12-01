@@ -61,17 +61,16 @@ namespace functional_impl
         };
 
         // specialization for member function pointers
-        template<typename ReturnType, typename ValueType>
-        struct Applicator<ReturnType(ValueType::*)() const>
+        template<typename ReturnType, typename ValueType, typename... Args>
+        struct Applicator<ReturnType(ValueType::*)(Args...) const>
         {
-            typedef ReturnType(ValueType::*Fun)() const;
+            typedef ReturnType(ValueType::*Fun)(Args...) const;
 
             const Fun& f;
 
-            template<typename Arg>
-            auto operator () (const Arg& arg) const -> decltype((arg.*f)())
+            auto operator () (const ValueType& thisArg, const Args&... args) const -> decltype((thisArg.*f)(args...))
             {
-                return (arg.*f)();
+                return (thisArg.*f)(args...);
             }
         };
 
@@ -102,6 +101,17 @@ namespace functional_impl
                 helpers::Applicator<Fun>{fun}(input[0]);
             }
         }
+
+        template < typename COut, typename CIn >
+        auto reserve(COut& outc, CIn inc) -> decltype(outc.reserve(inc.size()))
+        {
+            outc.reserve(inc.size());
+        }
+
+        template < typename... T >
+        void reserve(T...)
+        {
+        }
     };
 
     template<template<typename, typename ...> class Iteratable, typename ValueType, typename Fun, typename... MoreTypes>
@@ -125,22 +135,11 @@ namespace functional_impl
         helpers::apply<size>(fun, input);
     }
 
-    template < typename COut, typename CIn >
-    auto reserve(COut& outc, CIn inc) -> decltype(outc.reserve(inc.size()))
-    {
-        outc.reserve(inc.size());
-    }
-
-    template < typename... T >
-    void reserve(T...)
-    {
-    }
-
     template<template<typename, typename ...> class ContainerType, typename ValueType, typename Fun, typename ResultType = decltype(std::declval<helpers::Applicator<Fun>>()(std::declval<ValueType>())), typename... MoreTypes>
     auto map(Fun fun, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType>
     {
         ContainerType<ResultType> output;
-        reserve(output, input);
+        helpers::reserve(output, input);
         for (const ValueType& value : input)
         {
             output.push_back(helpers::Applicator<Fun>{fun}(value));
@@ -154,7 +153,7 @@ namespace functional_impl
         OutValue res = neutralValue;
         for (InValue value : iteratable)
         {
-            res = fun(value, res);
+            res = helpers::Applicator<Fun>{fun}(value, res);
         }
         return res;
     }
@@ -165,7 +164,7 @@ namespace functional_impl
         OutValue res = neutralValue;
         for (InValue value : iteratable)
         {
-            res = fun(res, value);
+            res = helpers::Applicator<Fun>{fun}(res, value);
         }
         return res;
     }
@@ -178,7 +177,7 @@ namespace functional_impl
         auto rhsIt = rhs.begin();
         while (lhsIt != lhs.end() && rhsIt != rhs.end())
         {
-            out.push_back(fun(*lhsIt, *rhsIt));
+            out.push_back(helpers::Applicator<Fun>{fun}(*lhsIt, *rhsIt));
             ++lhsIt; ++rhsIt;
         }
         return out;

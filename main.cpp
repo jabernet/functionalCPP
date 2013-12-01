@@ -44,6 +44,8 @@ public:
     void print() const { std::cout << *this << " "; }
 
     int to_int() const { return atoi(c_str()); }
+
+    string concat(const string& other) const { return *this + other; }
 };
 
 template<typename T>
@@ -281,6 +283,12 @@ int main(const int argc, const char* argv[])
     auto sum1 = functional::foldr([] (int a, int b) { return a + b; }, 0, v);
     auto sum2 = functional::foldl([] (int a, int b) { return a + b; }, 0, v);
     auto sum3 = functional::foldl([] (int a, int b) { return a + b; }, 0, l);
+
+    auto sum5 = functional::foldr(&string::concat, string(), vs);
+    std::cout << sum5 << std::endl;
+
+    auto sum6 = functional::foldl(&string::concat, string(), vs);
+    std::cout << sum6 << std::endl;
 
     auto fac1 = functional::foldl([](int a, int b) { return a * b; }, 1, v);
 
