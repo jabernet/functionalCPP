@@ -54,7 +54,7 @@ namespace functional_impl
             Fun f;
 
             template<typename... Args>
-            auto operator () (const Args&... args) const -> decltype(f(args...))
+            forceinline auto operator () (const Args&... args) const -> decltype(f(args...))
             {
                 return f(args...);
             }
@@ -68,7 +68,7 @@ namespace functional_impl
 
             Fun f;
 
-            auto operator () (const ValueType& thisArg, const Args&... args) const -> decltype((thisArg.*f)(args...))
+            forceinline auto operator () (const ValueType& thisArg, const Args&... args) const -> decltype((thisArg.*f)(args...))
             {
                 return (thisArg.*f)(args...);
             }
@@ -103,19 +103,19 @@ namespace functional_impl
         }
 
         template < typename COut, typename CIn >
-        auto reserve(COut& outc, CIn inc) -> decltype(outc.reserve(inc.size()))
+        forceinline auto reserve(COut& outc, CIn inc) -> decltype(outc.reserve(inc.size()))
         {
             outc.reserve(inc.size());
         }
 
         template < typename... T >
-        void reserve(T...)
+        forceinline void reserve(T...)
         {
         }
     };
 
     template<template<typename, typename ...> class Iteratable, typename ValueType, typename Fun, typename... MoreTypes>
-    void apply(Fun fun, const Iteratable<ValueType, MoreTypes...>& input)
+    forceinline void apply(Fun fun, const Iteratable<ValueType, MoreTypes...>& input)
     {
         for (const ValueType& value : input)
         {
@@ -124,19 +124,19 @@ namespace functional_impl
     }
 
     template<typename Fun, template<typename...> class TupleType, typename... ValueTypes>
-    void apply(Fun fun, const TupleType<ValueTypes...>& input)
+    forceinline void apply(Fun fun, const TupleType<ValueTypes...>& input)
     {
         helpers::apply<sizeof...(ValueTypes)>(fun, input);
     }
 
     template<typename Fun, template<typename,std::size_t> class Array, typename ValueType, std::size_t size>
-    void apply(Fun fun, const Array<ValueType, size>& input)
+    forceinline void apply(Fun fun, const Array<ValueType, size>& input)
     {
         helpers::apply<size>(fun, input);
     }
 
     template<template<typename, typename ...> class ContainerType, typename ValueType, typename Fun, typename ResultType = decltype(std::declval<helpers::Applicator<Fun>>()(std::declval<ValueType>())), typename... MoreTypes>
-    auto map(Fun fun, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType>
+    forceinline auto map(Fun fun, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType>
     {
         ContainerType<ResultType> output;
         helpers::reserve(output, input);
@@ -148,7 +148,7 @@ namespace functional_impl
     }
 
     template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
-    OutValue foldr(Fun fun, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
+    forceinline OutValue foldr(Fun fun, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
     {
         OutValue res = neutralValue;
         for (InValue value : iteratable)
@@ -159,7 +159,7 @@ namespace functional_impl
     }
 
     template<template<typename...> class Iteratable, typename Fun, typename InValue, typename OutValue, typename... ExtraArgs>
-    OutValue foldl(Fun fun, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
+    forceinline OutValue foldl(Fun fun, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
     {
         OutValue res = neutralValue;
         for (InValue value : iteratable)
@@ -170,7 +170,7 @@ namespace functional_impl
     }
 
     template<typename Fun, template<typename...> class Container, typename LhsValue, typename RhsValue, typename OutValue = decltype(std::declval<Fun>()(std::declval<LhsValue>(), std::declval<RhsValue>())), typename... ExtraArgs1, typename... ExtraArgs2, typename OutContainer = Container<OutValue>>
-    OutContainer zipWith(Fun fun, const Container<LhsValue, ExtraArgs1...>& lhs, const Container<RhsValue, ExtraArgs2...>& rhs)
+    forceinline OutContainer zipWith(Fun fun, const Container<LhsValue, ExtraArgs1...>& lhs, const Container<RhsValue, ExtraArgs2...>& rhs)
     {
         OutContainer out;
         auto lhsIt = lhs.begin();
@@ -184,7 +184,7 @@ namespace functional_impl
     }
 
     template<template<typename...> class Container, typename LhsValue, typename RhsValue, typename... ExtraArgs1, typename... ExtraArgs2, typename OutContainer = Container<std::pair<LhsValue, RhsValue>>>
-    OutContainer zip(const Container<LhsValue, ExtraArgs1...>& lhs, const Container<RhsValue, ExtraArgs2...>& rhs)
+    forceinline OutContainer zip(const Container<LhsValue, ExtraArgs1...>& lhs, const Container<RhsValue, ExtraArgs2...>& rhs)
     {
         return zipWith([](LhsValue l, RhsValue r) { return std::make_pair(l, r); }, lhs, rhs);
     }
@@ -217,7 +217,7 @@ namespace functional_impl
         struct build_indices<0, Is...> : indices<Is...> {};
 
         template<typename Fun, typename... Args, std::size_t... Is>
-        auto uncurryTuple(Fun& f, const std::tuple<Args...>& args, indices<Is...>) -> decltype(f(std::get<Is>(args)...))
+        forceinline auto uncurryTuple(Fun& f, const std::tuple<Args...>& args, indices<Is...>) -> decltype(f(std::get<Is>(args)...))
         {
             return f(std::get<Is>(args)...);
         }
@@ -236,13 +236,13 @@ namespace functional_impl
     }
 
     template<typename Fun>
-    helpers::Curry<Fun> curry(Fun f)
+    forceinline helpers::Curry<Fun> curry(Fun f)
     {
         return helpers::Curry<Fun> { std::move(f) };
     }
 
     template<typename Fun>
-    helpers::UnCurry<Fun> uncurry(Fun f)
+    forceinline helpers::UnCurry<Fun> uncurry(Fun f)
     {
         return helpers::UnCurry<Fun> { std::move(f) };
     }
