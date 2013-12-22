@@ -8,5 +8,7 @@ Methods implemented so far:
 * `foldl :: (a -> b -> a) -> a -> [b] -> a`
 * `zip :: [a] -> [b] -> [(a,b)]`
 * `zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]`
+* `curry: ((a,b,...) -> c) -> (a -> b -> ... -> c)
+* `uncurry: (a -> b -> ... -> c) -> ((a,b,...) -> c)
 
 More and hopefully some tests to come.
