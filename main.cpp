@@ -61,6 +61,16 @@ void print(const std::string& s)
     std::cout << s << " ";
 }
 
+void printCurried(int i1, int i2, int i3, int i4)
+{
+    std::cout << i1 << " " << i2 << " " << i3 << " " << i4 << " ";
+}
+
+void printUnCurried(std::tuple<int, int, int, int> tup)
+{
+    std::cout << std::get<0>(tup) << " " << std::get<1>(tup) << " " << std::get<2>(tup) << " " << std::get<3>(tup) << " ";
+}
+
 struct Printer
 {
     template<typename T>
@@ -246,6 +256,56 @@ noinline void testMapListFunctionPtr()
     std::cout << " : " << typeid(res).name() << std::endl;
 }
 
+noinline void testCurryFunctionPtr()
+{
+    std::cout << "testCurryFunctionPtr: ";
+    auto resFn = functional::curry(printUnCurried);
+    resFn(1, 2, 3, 4);
+    std::cout << " : " << typeid(resFn).name() << std::endl;
+}
+
+noinline void testCurryLambda()
+{
+    std::cout << "testCurryLambda: ";
+    auto resFn = functional::curry([] (std::tuple<int,int,int,int> tup) { printUnCurried(tup); } );
+    resFn(1, 2, 3, 4);
+    std::cout << " : " << typeid(resFn).name() << std::endl;
+}
+
+noinline void testUnCurryFunctionPtr()
+{
+    std::cout << "testUnCurryFunctionPtr: ";
+    auto resFn = functional::uncurry(printCurried);
+    resFn(t);
+    std::cout << " : " << typeid(resFn).name() << std::endl;
+}
+
+noinline void testUnCurryLambda()
+{
+    std::cout << "testUnCurryLambda: ";
+    auto resFn = functional::uncurry([] (int i1, int i2, int i3, int i4) { printCurried(i1, i2, i3, i4); } );
+    resFn(t);
+    std::cout << " : " << typeid(resFn).name() << std::endl;
+}
+
+noinline void testUnCurryMemberFnNoParam()
+{
+    std::cout << "testUnCurryMemberFnNoParam: ";
+    auto resFn = functional::uncurry(&string::print);
+    resFn(std::tuple<string>("1 2 3 4 "));
+    std::cout << " : " << typeid(resFn).name() << std::endl;
+}
+
+noinline void testUnCurryMemberFnParam()
+{
+    std::cout << "testUnCurryMemberFnParam: ";
+    auto resFn = functional::uncurry(&string::concat);
+    std:string str = resFn(std::tuple<string, string>("1 2", "3 4 "));
+    std::cout << str;
+    std::cout << " : " << typeid(resFn).name() << std::endl;
+}
+
+
 int main(const int argc, const char* argv[])
 {
     ba.fill(string("-"));
@@ -278,6 +338,14 @@ int main(const int argc, const char* argv[])
     testMapListLambda();
     testMapListMemberFn();
     testMapListFunctionPtr();
+
+    testCurryFunctionPtr();
+    testCurryLambda();
+
+    testUnCurryFunctionPtr();
+    testUnCurryLambda();
+    testUnCurryMemberFnNoParam();
+    testUnCurryMemberFnParam();
 
 
     auto sum1 = functional::foldr([] (int a, int b) { return a + b; }, 0, v);

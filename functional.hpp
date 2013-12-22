@@ -51,6 +51,14 @@ namespace functional
     template<typename LhsContainer, typename RhsContainer>
     auto zip(const LhsContainer& lhs, const RhsContainer& rhs) -> decltype(functional_impl::zip(lhs, rhs));
   
+    //! curry: ((a,b,...) -> c) -> (a -> b -> ... -> c)
+    template<typename Fun>
+    auto curry(Fun f) -> decltype(functional_impl::curry(f));
+
+    //! uncurry: (a -> b -> ... -> c) -> ((a,b,...) -> c)
+    template<typename Fun>
+    auto uncurry(Fun f) -> decltype(functional_impl::uncurry(f));
+
     template<typename T>
     class Range;
 
@@ -93,6 +101,18 @@ template<typename LhsContainer, typename RhsContainer>
 auto functional::zip(const LhsContainer& lhs, const RhsContainer& rhs) -> decltype(functional_impl::zip(lhs, rhs))
 {
     return functional_impl::zip(lhs, rhs);
+}
+
+template<typename Fun>
+auto functional::curry(Fun f) -> decltype(functional_impl::curry(f))
+{
+    return functional_impl::curry(f);
+}
+
+template<typename Fun>
+auto functional::uncurry(Fun f) -> decltype(functional_impl::uncurry(f))
+{
+    return functional_impl::uncurry(f);
 }
 
 template<typename T>

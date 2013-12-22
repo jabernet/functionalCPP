@@ -47,11 +47,11 @@ namespace functional_impl
 
     namespace helpers
     {
-        // helper struct to apply function pointer, lambdas and member function pointers the same way
+        // helper struct to apply function pointer, lambdas and member function pointers in a uniform way
         template<typename Fun>
         struct Applicator
         {
-            const Fun& f;
+            Fun f;
 
             template<typename... Args>
             auto operator () (const Args&... args) const -> decltype(f(args...))
@@ -66,7 +66,7 @@ namespace functional_impl
         {
             typedef ReturnType(ValueType::*Fun)(Args...) const;
 
-            const Fun& f;
+            Fun f;
 
             auto operator () (const ValueType& thisArg, const Args&... args) const -> decltype((thisArg.*f)(args...))
             {
@@ -187,6 +187,64 @@ namespace functional_impl
     OutContainer zip(const Container<LhsValue, ExtraArgs1...>& lhs, const Container<RhsValue, ExtraArgs2...>& rhs)
     {
         return zipWith([](LhsValue l, RhsValue r) { return std::make_pair(l, r); }, lhs, rhs);
+    }
+
+    namespace helpers
+    {
+        template<typename Fun>
+        struct Curry
+        {
+            Fun f;
+
+            template<typename... Args>
+            auto operator () (const Args&... args) const -> decltype(f(std::make_tuple(args...)))
+            {
+                return f(std::make_tuple(args...));
+            }            
+        };
+
+        // helper struct for indexes
+        template <std::size_t... Is>
+        struct indices {};
+
+        // template to extract indeces struct from parameter pack
+        template <std::size_t N, std::size_t... Is>
+        struct build_indices
+          : build_indices<N-1, N-1, Is...> {};
+
+        // template to extract indeces struct from parameter pack
+        template <std::size_t... Is>
+        struct build_indices<0, Is...> : indices<Is...> {};
+
+        template<typename Fun, typename... Args, std::size_t... Is>
+        auto uncurryTuple(Fun& f, const std::tuple<Args...>& args, indices<Is...>) -> decltype(f(std::get<Is>(args)...))
+        {
+            return f(std::get<Is>(args)...);
+        }
+
+        template<typename Fun>
+        struct UnCurry
+        {
+            Applicator<Fun> f;
+
+            template<typename... Args>
+            auto operator () (const std::tuple<Args...>& args) const -> decltype(uncurryTuple(f, args, build_indices<sizeof...(Args)>()))
+            {
+                return uncurryTuple(f, args, build_indices<sizeof...(Args)>());
+            }            
+        };
+    }
+
+    template<typename Fun>
+    helpers::Curry<Fun> curry(Fun f)
+    {
+        return helpers::Curry<Fun> { std::move(f) };
+    }
+
+    template<typename Fun>
+    helpers::UnCurry<Fun> uncurry(Fun f)
+    {
+        return helpers::UnCurry<Fun> { std::move(f) };
     }
 };
 
