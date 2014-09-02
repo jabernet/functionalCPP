@@ -91,8 +91,8 @@ std::tuple<int, int, int, int> t(std::make_tuple(1, 2, 3, 4));
 std::tuple<string, string, string, string> ts(std::make_tuple("1", "2", "3", "4"));
 std::tuple<int, string, int, string> tm(std::make_tuple(1, "'2'", 3, "'4'"));
 
-std::array<int, 4> a { 1, 2, 3, 4};
-std::array<string, 4> as { "1", "2", "3", "4" };
+std::array<int, 4> a { { 1, 2, 3, 4} };
+std::array<string, 4> as { { "1", "2", "3", "4" } };
 std::array<string, 500> ba;
 
 
@@ -300,11 +300,10 @@ noinline void testUnCurryMemberFnParam()
 {
     std::cout << "testUnCurryMemberFnParam: ";
     auto resFn = functional::uncurry(&string::concat);
-    std:string str = resFn(std::tuple<string, string>("1 2", "3 4 "));
+    auto str = resFn(std::tuple<string, string>("1 2", "3 4 "));
     std::cout << str;
     std::cout << " : " << typeid(resFn).name() << std::endl;
 }
-
 
 int main(const int argc, const char* argv[])
 {
@@ -346,7 +345,6 @@ int main(const int argc, const char* argv[])
     testUnCurryLambda();
     testUnCurryMemberFnNoParam();
     testUnCurryMemberFnParam();
-
 
     auto sum1 = functional::foldr([] (int a, int b) { return a + b; }, 0, v);
     auto sum2 = functional::foldl([] (int a, int b) { return a + b; }, 0, v);

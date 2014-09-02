@@ -194,7 +194,7 @@ namespace functional_impl
         template<typename Fun>
         struct Curry
         {
-            Fun f;
+            Applicator<Fun> f;
 
             template<typename... Args>
             auto operator () (const Args&... args) const -> decltype(f(std::make_tuple(args...)))
@@ -231,20 +231,20 @@ namespace functional_impl
             auto operator () (const std::tuple<Args...>& args) const -> decltype(uncurryTuple(f, args, build_indices<sizeof...(Args)>()))
             {
                 return uncurryTuple(f, args, build_indices<sizeof...(Args)>());
-            }            
+            }
         };
     }
 
     template<typename Fun>
     forceinline helpers::Curry<Fun> curry(Fun f)
     {
-        return helpers::Curry<Fun> { std::move(f) };
+        return helpers::Curry<Fun> { { std::move(f) } };
     }
 
     template<typename Fun>
     forceinline helpers::UnCurry<Fun> uncurry(Fun f)
     {
-        return helpers::UnCurry<Fun> { std::move(f) };
+        return helpers::UnCurry<Fun> { { std::move(f) } };
     }
 };
 
