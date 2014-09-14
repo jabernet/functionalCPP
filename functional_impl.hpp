@@ -43,7 +43,6 @@ THE SOFTWARE.
 
 #include "applicator.hpp"
 
-
 namespace functional_impl
 {
     // maximum number of elements in tuple/array that will be 'unrolled' using recursive templates at compile time
@@ -55,61 +54,67 @@ namespace functional_impl
         template<std::size_t>
         struct index {} PACKED;
 
-        template<std::size_t N, typename Fun, typename Gettable, std::size_t I = N>
-        forceinline auto apply(Fun fun, const Gettable& input, index<I> = index<N>())
+        template<std::size_t N, typename Fun, typename Iteratable, std::size_t I = N>
+        forceinline auto apply(Fun fun, Iteratable& inout, index<I> = index<N>())
             -> typename std::enable_if<(N <= UNROLL_MAX)>::type
         {
-            helpers::Applicator<Fun>{fun}(std::get<N-I>(input));
-            apply<N>(fun, input, index<I-1>());
+            helpers::Applicator<Fun>{fun}(std::get<N-I>(inout));
+
+            apply<N>(fun, inout, index<I-1>());
         }
 
-        template<std::size_t N, typename Fun, typename Gettable>
-        forceinline auto apply(Fun, const Gettable&, index<0>)
+        template<std::size_t N, typename Fun, typename Iteratable>
+        forceinline auto apply(Fun, Iteratable&, index<0>)
             -> typename std::enable_if<(N <= UNROLL_MAX)>::type
         {
         }
 
-        template<std::size_t N, typename Fun, typename Gettable>
-        forceinline auto apply(Fun fun, const Gettable& input)
+        template<std::size_t N, typename Fun, typename Iteratable>
+        forceinline auto apply(Fun fun, Iteratable& inout)
             -> typename std::enable_if<(N > UNROLL_MAX)>::type
         {
             for(int i = 0; i < N; ++i)
             {
-                helpers::Applicator<Fun>{fun}(input[0]);
+                helpers::Applicator<Fun>{fun}(inout[0]);
             }
         }
 
+        // specialization for types that have reserve method (using SFINAE)
         template < typename COut, typename CIn >
-        forceinline auto reserve(COut& outc, CIn inc) -> decltype(outc.reserve(inc.size()))
+        forceinline auto reserve(COut& outc, const CIn& inc) -> decltype(outc.reserve(inc.size()))
         {
             outc.reserve(inc.size());
         }
 
+        // specialization for types that don't have reserve method
         template < typename... T >
         forceinline void reserve(T...)
         {
         }
     };
 
-    template<template<typename, typename ...> class Iteratable, typename ValueType, typename Fun, typename... MoreTypes>
-    forceinline void apply(Fun fun, const Iteratable<ValueType, MoreTypes...>& input)
+    // generic implementation of apply for any kind of iteratable (vector, list, etc.)
+    template<typename Fun, typename Iteratable>
+    forceinline void apply(Fun fun, Iteratable& inout)
     {
-        for (const ValueType& value : input)
+        for (auto& value : inout)
         {
             helpers::Applicator<Fun>{fun}(value);
         }
     }
 
-    template<typename Fun, template<typename...> class TupleType, typename... ValueTypes>
-    forceinline void apply(Fun fun, const TupleType<ValueTypes...>& input)
+    // specialization for tuple (compile time sized)
+    template<typename Fun, typename... Args>
+    forceinline void apply(Fun fun, std::tuple<Args...>& inout)
     {
-        helpers::apply<sizeof...(ValueTypes)>(fun, input);
+        helpers::apply<sizeof...(Args)>(fun, inout);
     }
 
-    template<typename Fun, template<typename,std::size_t> class Array, typename ValueType, std::size_t size>
-    forceinline void apply(Fun fun, const Array<ValueType, size>& input)
+    // specialization for array (compile time sized)
+    template<typename Fun, typename T, size_t size>
+    forceinline void apply(Fun fun, std::array<T, size>& inout)
     {
-        helpers::apply<size>(fun, input);
+        helpers::apply<size>(fun, inout);
     }
 
     template<template<typename, typename ...> class ContainerType, typename ValueType, typename Fun, typename ResultType = decltype(std::declval<helpers::Applicator<Fun>>()(std::declval<ValueType>())), typename... MoreTypes>

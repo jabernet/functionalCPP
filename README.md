@@ -2,7 +2,7 @@ With the new C++11 standard many powerful features for a powerful and less verbo
 
 Methods implemented so far:
 
-* `apply :: (a -> b) -> [a]`
+* `apply :: (a -> b) -> [a]` [1]
 * `map :: (a -> b) -> [a] -> [b]`
 * `foldr :: (a -> b -> b) -> b -> [a] -> b`
 * `foldl :: (a -> b -> a) -> a -> [b] -> a`
@@ -10,5 +10,7 @@ Methods implemented so far:
 * `zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]`
 * `curry: ((a,b,...) -> c) -> (a -> b -> ... -> c)`
 * `uncurry: (a -> b -> ... -> c) -> ((a,b,...) -> c)`
+
+[1] Haskell doesn't have `apply`, since it's pure, but for C++ and other side-effect based languages it makes sense
 
 More and hopefully some tests to come.

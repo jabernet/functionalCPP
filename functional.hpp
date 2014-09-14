@@ -25,11 +25,15 @@ THE SOFTWARE.
 
 #include "functional_impl.hpp"
 
+// TODO:
+// - write map in a way that out container can be specified as first paramter
+// - write zipwith so that out container can be specified as first paramter
+
 namespace functional
 {
     //! apply :: (a -> b) -> [a]
     template<typename Fun, typename Iteratable>
-    void apply(Fun fun, const Iteratable& input);
+    void apply(Fun fun, Iteratable& inout);
 
     //! map :: (a -> b) -> [a] -> [b]
     template<typename Fun, typename Container>
@@ -68,9 +72,9 @@ namespace functional
 };
 
 template<typename Fun, typename Iteratable>
-void functional::apply(Fun fun, const Iteratable& input)
+void functional::apply(Fun fun, Iteratable& inout)
 {
-    return functional_impl::apply(fun, input);
+    return functional_impl::apply(fun, inout);
 }
 
 template<typename Fun, typename Container>

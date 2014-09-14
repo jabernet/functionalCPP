@@ -36,14 +36,16 @@ public:
     using std::string::string;
 
     template<typename... Args>
-    string(Args... args)
-        : std::string(args...)
+    string(Args&&... args)
+        : std::string(std::forward<Args>(args)...)
     {
     }
 
     void print() const { std::cout << *this << " "; }
 
     int to_int() const { return atoi(c_str()); }
+
+    void duplicate() { this->append(*this); }
 
     string concat(const string& other) const { return *this + other; }
 };
@@ -74,7 +76,7 @@ void printUnCurried(std::tuple<int, int, int, int> tup)
 struct Printer
 {
     template<typename T>
-    void operator() (T t) const
+    void operator() (const T& t) const
     {
         std::cout << t << " ";
     }
@@ -94,7 +96,6 @@ std::tuple<int, string, int, string> tm(std::make_tuple(1, "'2'", 3, "'4'"));
 std::array<int, 4> a { { 1, 2, 3, 4} };
 std::array<string, 4> as { { "1", "2", "3", "4" } };
 std::array<string, 500> ba;
-
 
 noinline void testApplyVectorLambda()
 {
@@ -206,6 +207,74 @@ noinline void testApplyBigArrayFunctionPtr()
     std::cout << "testApplyBigArrayFunctionPtr: ";
     functional::apply(print, ba);
     std::cout << std::endl;
+}
+
+noinline void testApplyConstVectorLambda()
+{
+    std::cout << "testApplyConstVectorLambda: ";
+    const auto vc(v);
+    functional::apply([](int i) { printf("%d ", i);  }, vc);
+    std::cout << std::endl;
+}
+
+noinline void testApplyConstVectorMemberPtr()
+{
+    std::cout << "testApplyConstVectorMemberPtr: ";
+    const auto vc(vs);
+    functional::apply(&string::print, vc);
+    std::cout << std::endl;
+}
+
+noinline void testApplyConstArrayLambda()
+{
+    std::cout << "testApplyConstArrayLambda: ";
+    const auto ac(a);
+    functional::apply([](int i) { printf("%d ", i);  }, ac);
+    std::cout << std::endl;
+}
+
+noinline void testApplyConstArrayMemberPtr()
+{
+    std::cout << "testApplyConstArrayMemberPtr: ";
+    const auto vc(vs);
+    functional::apply(&string::print, vc);
+    std::cout << std::endl;
+}
+
+noinline void testApplyMutableVectorLambda()
+{
+    std::cout << "testApplyMutableVectorLambda: ";
+    auto vc(v);
+    functional::apply([](int& a) { ++a; }, vc);
+    functional::apply(Printer(), vc);
+    std::cout << std::endl;
+}
+
+noinline void testApplyMutableVectorMemberPtr()
+{
+    std::cout << "testApplyMutableVectorMemberPtr: ";
+    auto vc(vs);
+    functional::apply(&string::duplicate, vc);
+    functional::apply(Printer(), vc);
+    std::cout << std::endl;
+}
+
+noinline void testApplyMutableArrayLambda()
+{
+    std::cout << "testApplyMutableArrayLambda: ";
+    auto ac(a);
+    functional::apply([](int& a) { ++a; }, ac);
+    functional::apply(Printer(), ac);
+    std::cout << std::endl;
+}
+
+noinline void testApplyMutableArrayMemberPtr()
+{
+    std::cout << "testApplyMutableArrayMemberPtr: ";
+    auto ac(as);
+    functional::apply(&string::duplicate, ac);
+    functional::apply(Printer(), ac);
+    std::cout<< std::endl;
 }
 
 noinline void testMapVectorLambda()
@@ -329,6 +398,16 @@ int main(const int argc, const char* argv[])
     testApplyBigArrayLambda();
     testApplyBigArrayMemberFn();
     testApplyBigArrayFunctionPtr();
+
+    testApplyConstVectorLambda();
+    testApplyConstArrayMemberPtr();
+    testApplyConstArrayLambda();
+    testApplyConstArrayMemberPtr();
+
+    testApplyMutableVectorLambda();
+    testApplyMutableVectorMemberPtr();
+    testApplyMutableArrayLambda();
+    testApplyMutableArrayMemberPtr();
 
     testMapVectorLambda();
     testMapVectorMemberFn();
