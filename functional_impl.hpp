@@ -39,6 +39,10 @@ THE SOFTWARE.
 
 #include <cstddef>
 #include <tuple>
+#include <utility>
+
+#include "applicator.hpp"
+
 
 namespace functional_impl
 {
@@ -47,33 +51,6 @@ namespace functional_impl
 
     namespace helpers
     {
-        // helper struct to apply function pointer, lambdas and member function pointers in a uniform way
-        template<typename Fun>
-        struct Applicator
-        {
-            Fun f;
-
-            template<typename... Args>
-            forceinline auto operator () (const Args&... args) const -> decltype(f(args...))
-            {
-                return f(args...);
-            }
-        };
-
-        // specialization for member function pointers
-        template<typename ReturnType, typename ValueType, typename... Args>
-        struct Applicator<ReturnType(ValueType::*)(Args...) const>
-        {
-            typedef ReturnType(ValueType::*Fun)(Args...) const;
-
-            Fun f;
-
-            forceinline auto operator () (const ValueType& thisArg, const Args&... args) const -> decltype((thisArg.*f)(args...))
-            {
-                return (thisArg.*f)(args...);
-            }
-        };
-
         // helper struct to allow recursion using overload resolution
         template<std::size_t>
         struct index {} PACKED;

@@ -63,9 +63,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="applicator.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="applicator.hpp" />
     <ClInclude Include="functional.hpp" />
     <ClInclude Include="functional_impl.hpp" />
   </ItemGroup>
