@@ -326,11 +326,10 @@ noinline void testMapListFunctionPtr()
     std::cout << " : " << typeid(res).name() << std::endl;
 }
 
-/*
 noinline void testMapArrayLambda()
 {
     std::cout << "testMapArrayLambda: ";
-    auto res = functional_impl::map<functional::_Derived>([](int a) { return to_string(a); }, a);
+    auto res = functional::map([](int a) { return to_string(a); }, a);
     functional::apply(Printer(), res);
     std::cout << " : " << typeid(res).name() << std::endl;
 }
@@ -350,7 +349,14 @@ noinline void testMapArrayFunctionPtr()
     functional::apply(Printer(), res);
     std::cout << " : " << typeid(res).name() << std::endl;
 }
-*/
+
+noinline void testMapArrayLambdaExplicitSize()
+{
+    std::cout << "testMapArrayLambdaExplicitSize: ";
+    auto res = functional::map<std::array<std::string, 6>>([](int a) { return to_string(a); }, a);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
 
 noinline void testMapVector2ListLambda()
 {
@@ -368,7 +374,6 @@ noinline void testMapList2VectorLambda()
     std::cout << " : " << typeid(res).name() << std::endl;
 }
 
-/*
 noinline void testMapArray2VectorLambda()
 {
     std::cout << "testMapArray2VectorLambda: ";
@@ -376,7 +381,22 @@ noinline void testMapArray2VectorLambda()
     functional::apply(Printer(), res);
     std::cout << " : " << typeid(res).name() << std::endl;
 }
-*/
+
+noinline void testMapArray2ListLambda()
+{
+    std::cout << "testMapArray2ListLambda: ";
+    auto res = functional::map<std::list<std::string>>([](int a) { return to_string(a); }, a);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+
+noinline void testMapVector2ArrayLambda()
+{
+    std::cout << "testMapVector2ArrayLambda: ";
+    auto res = functional::map<std::array<std::string, 4>>([](int a) { return to_string(a); }, v);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
 
 noinline void testCurryFunctionPtr()
 {
@@ -470,8 +490,16 @@ int main(const int argc, const char* argv[])
     testMapListMemberFn();
     testMapListFunctionPtr();
 
+    testMapArrayLambda();
+    testMapArrayMemberFn();
+    testMapArrayFunctionPtr();
+    testMapArrayLambdaExplicitSize();
+
     testMapVector2ListLambda();
     testMapList2VectorLambda();
+    testMapArray2VectorLambda();
+    testMapArray2ListLambda();
+    testMapVector2ArrayLambda();
 
     testCurryFunctionPtr();
     testCurryLambda();

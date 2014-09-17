@@ -40,6 +40,7 @@ THE SOFTWARE.
 #include <cstddef>
 #include <tuple>
 #include <utility>
+#include <assert.h>
 
 #include "applicator.hpp"
 
@@ -61,6 +62,107 @@ namespace functional_impl
         // helper struct to allow recursion using overload resolution
         template<std::size_t>
         struct index {} PACKED;
+
+        // helper struct to derive input type, output type and output container given input container, explcit output container (or _Derived) and function type
+        template<
+            typename ResultContainerTypeExplicit,
+            typename InputContainerType,
+            typename FunType>
+        struct result_t;
+
+        // specialization for generic containers
+        template<
+            typename ResultContainerExplicit,
+            template<typename...> class ContainerType,
+            typename Fun,
+            typename ValueType,
+            typename... MoreTypes>
+        struct result_t<
+            ResultContainerExplicit,
+            ContainerType<ValueType, MoreTypes...>,
+            Fun>
+        {
+            typedef ValueType value_type;
+            typedef decltype(std::declval<helpers::Applicator<Fun>>()(std::declval<ValueType>())) result_type;
+            typedef typename std::conditional<
+                std::is_same<ResultContainerExplicit, _Derived>::value,
+                ContainerType<result_type>,
+                ResultContainerExplicit>::type container_type;
+            static_assert(std::is_convertible<result_type, typename container_type::value_type>::value, "ResultContainer does not have proper value type.");
+        };
+
+        // specialization for std array
+        template<
+            typename ResultContainerExplicit,
+            typename Fun,
+            typename ValueType,
+            size_t size>
+        struct result_t<
+            ResultContainerExplicit,
+            std::array<ValueType, size>,
+            Fun>
+        {
+            typedef ValueType value_type;
+            typedef decltype(std::declval<helpers::Applicator<Fun>>()(std::declval<ValueType>())) result_type;
+            typedef typename std::conditional<
+                std::is_same<ResultContainerExplicit, _Derived>::value,
+                std::array<result_type, size>,
+                ResultContainerExplicit>::type container_type;
+            static_assert(std::is_convertible<result_type, typename container_type::value_type>::value, "ResultContainer does not have proper value type.");
+        };
+
+        // helper struct to do accumulation for different containers
+        template<typename ContainerT>
+        struct Accumulator
+        {
+            ContainerT container;
+            
+            // specialization for types that have reserve method (using SFINAE)
+            template<typename COut, typename CIn>
+            forceinline auto reserve(COut& outc, const CIn& inc) -> decltype(outc.reserve(inc.size()))
+            {
+                outc.reserve(inc.size());
+            }
+
+            // specialization for types that don't have reserve method
+            template <typename... T>
+            forceinline void reserve(T...)
+            {
+            }
+
+            template<typename T>
+            forceinline void accumulate(const T& t)
+            {
+                container.push_back(t);
+            }
+        };
+
+        // helper struct to do accumulation for different containers
+        template<typename ValueT, size_t size>
+        struct Accumulator<std::array<ValueT, size>>
+        {
+            std::array<ValueT, size> container;
+            int pos = { 0 };
+
+            template<typename CIn>
+            forceinline void reserve(const CIn& input)
+            {
+                assert(input.size() <= size);
+            }
+
+            template<typename InT, size_t size_in>
+            forceinline void reserve(const std::array<InT, size_in>&)
+            {
+                static_assert(size_in <= size, "Result array cannot all elements of input array.");
+            }
+
+            template<typename T>
+            forceinline void accumulate(const T& t)
+            {
+                container[pos++] = t;
+            }
+        };
+
 
         template<std::size_t N, typename Fun, typename Iteratable, std::size_t I = N>
         forceinline auto apply(Fun fun, Iteratable& inout, index<I> = index<N>())
@@ -85,19 +187,6 @@ namespace functional_impl
             {
                 helpers::Applicator<Fun>{fun}(inout[0]);
             }
-        }
-
-        // specialization for types that have reserve method (using SFINAE)
-        template < typename COut, typename CIn >
-        forceinline auto reserve(COut& outc, const CIn& inc) -> decltype(outc.reserve(inc.size()))
-        {
-            outc.reserve(inc.size());
-        }
-
-        // specialization for types that don't have reserve method
-        template < typename... T >
-        forceinline void reserve(T...)
-        {
         }
     };
 
@@ -126,23 +215,24 @@ namespace functional_impl
     }
 
     template<
-        typename ResultContainerOrDerived, 
-        template<typename, typename ...> class ContainerType,
-        typename ValueType,
+        typename ResultContainerTypeExplicit,
+        typename InputContainerType,
         typename Fun,
-        typename ResultType = decltype(std::declval<helpers::Applicator<Fun>>()(std::declval<ValueType>())),
-        typename ResultContainer = typename std::conditional<std::is_same<ResultContainerOrDerived, _Derived>::value, ContainerType<ResultType>, ResultContainerOrDerived>::type,
-        typename... MoreTypes>
-    forceinline ResultContainer map(Fun fun, const ContainerType<ValueType, MoreTypes...>& input)
+        typename ResultHelperT = typename helpers::result_t<ResultContainerTypeExplicit, InputContainerType, Fun>,
+        typename ValueType = typename ResultHelperT::value_type,
+        typename ResultType = typename ResultHelperT::result_type,
+        typename ResultContainer = typename ResultHelperT::container_type>
+    forceinline ResultContainer map(Fun fun, const InputContainerType& input)
     {
-        static_assert(std::is_convertible<ResultType, typename ResultContainer::value_type>::value, "ResultContainer does not have proper value type.");
-        ResultContainer output;
-        helpers::reserve(output, input);
-        for (const ValueType& value : input)
-        {
-            output.push_back(helpers::Applicator<Fun>{fun}(value));
-        }
-        return output;
+        helpers::Accumulator<ResultContainer> accumulator;
+        accumulator.reserve(input);
+        apply(
+            [&](const ValueType& value)
+            { 
+                accumulator.accumulate(helpers::Applicator<Fun>{fun}(value));
+            },
+            input);
+        return accumulator.container;
     }
 
     template<typename ResultType, template<typename...> class Iteratable, typename InValue, typename Fun, typename... ExtraArgs>
