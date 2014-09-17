@@ -277,6 +277,7 @@ noinline void testApplyMutableArrayMemberPtr()
     std::cout<< std::endl;
 }
 
+
 noinline void testMapVectorLambda()
 {
     std::cout << "testMapVectorLambda: ";
@@ -324,6 +325,58 @@ noinline void testMapListFunctionPtr()
     functional::apply(Printer(), res);
     std::cout << " : " << typeid(res).name() << std::endl;
 }
+
+/*
+noinline void testMapArrayLambda()
+{
+    std::cout << "testMapArrayLambda: ";
+    auto res = functional_impl::map<functional::_Derived>([](int a) { return to_string(a); }, a);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+
+noinline void testMapArrayMemberFn()
+{
+    std::cout << "testMapArrayMemberFn: ";
+    auto res = functional::map(&string::to_int, as);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+
+noinline void testMapArrayFunctionPtr()
+{
+    std::cout << "testMapArrayFunctionPtr: ";
+    auto res = functional::map(to_string<int>, a);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+*/
+
+noinline void testMapVector2ListLambda()
+{
+    std::cout << "testMapVector2ListLambda: ";
+    auto res = functional::map<std::list<std::string>>([](int a) { return to_string(a); }, v);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+
+noinline void testMapList2VectorLambda()
+{
+    std::cout << "testMapList2VectorLambda: ";
+    auto res = functional::map<std::vector<std::string>>([](int a) { return to_string(a); }, v);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+
+/*
+noinline void testMapArray2VectorLambda()
+{
+    std::cout << "testMapArray2VectorLambda: ";
+    auto res = functional::map<std::vector<std::string>>([](int a) { return to_string(a); }, a);
+    functional::apply(Printer(), res);
+    std::cout << " : " << typeid(res).name() << std::endl;
+}
+*/
 
 noinline void testCurryFunctionPtr()
 {
@@ -417,6 +470,9 @@ int main(const int argc, const char* argv[])
     testMapListMemberFn();
     testMapListFunctionPtr();
 
+    testMapVector2ListLambda();
+    testMapList2VectorLambda();
+
     testCurryFunctionPtr();
     testCurryLambda();
 
@@ -429,11 +485,13 @@ int main(const int argc, const char* argv[])
     auto sum2 = functional::foldl([] (int a, int b) { return a + b; }, 0, v);
     auto sum3 = functional::foldl([] (int a, int b) { return a + b; }, 0, l);
 
-    auto sum5 = functional::foldr(&string::concat, string(), vs);
+    auto sum5 = functional::foldr<std::string>(&string::concat, string(), vs);
     std::cout << sum5 << std::endl;
+    std::cout << typeid(sum5).name() << std::endl;
 
-    auto sum6 = functional::foldl(&string::concat, string(), vs);
+    auto sum6 = functional::foldl<std::string>(&string::concat, string(), vs);
     std::cout << sum6 << std::endl;
+    std::cout << typeid(sum6).name() << std::endl;
 
     auto fac1 = functional::foldl([](int a, int b) { return a * b; }, 1, v);
 

@@ -43,8 +43,16 @@ THE SOFTWARE.
 
 #include "applicator.hpp"
 
+namespace functional
+{
+    // a struct indicating that the type should be derived instead of manually specified
+    struct _Derived {};
+}
+
 namespace functional_impl
 {
+    using namespace functional;
+
     // maximum number of elements in tuple/array that will be 'unrolled' using recursive templates at compile time
     static constexpr std::size_t UNROLL_MAX = 100;
 
@@ -117,10 +125,18 @@ namespace functional_impl
         helpers::apply<size>(fun, inout);
     }
 
-    template<template<typename, typename ...> class ContainerType, typename ValueType, typename Fun, typename ResultType = decltype(std::declval<helpers::Applicator<Fun>>()(std::declval<ValueType>())), typename... MoreTypes>
-    forceinline auto map(Fun fun, const ContainerType<ValueType, MoreTypes...>& input)->ContainerType<ResultType>
+    template<
+        typename ResultContainerOrDerived, 
+        template<typename, typename ...> class ContainerType,
+        typename ValueType,
+        typename Fun,
+        typename ResultType = decltype(std::declval<helpers::Applicator<Fun>>()(std::declval<ValueType>())),
+        typename ResultContainer = typename std::conditional<std::is_same<ResultContainerOrDerived, _Derived>::value, ContainerType<ResultType>, ResultContainerOrDerived>::type,
+        typename... MoreTypes>
+    forceinline ResultContainer map(Fun fun, const ContainerType<ValueType, MoreTypes...>& input)
     {
-        ContainerType<ResultType> output;
+        static_assert(std::is_convertible<ResultType, typename ResultContainer::value_type>::value, "ResultContainer does not have proper value type.");
+        ResultContainer output;
         helpers::reserve(output, input);
         for (const ValueType& value : input)
         {
@@ -129,10 +145,10 @@ namespace functional_impl
         return output;
     }
 
-    template<template<typename...> class Iteratable, typename InValue, typename OutValue, typename Fun, typename... ExtraArgs>
-    forceinline OutValue foldr(Fun fun, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
+    template<typename ResultType, template<typename...> class Iteratable, typename InValue, typename Fun, typename... ExtraArgs>
+    forceinline ResultType foldr(Fun fun, ResultType neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
     {
-        OutValue res = neutralValue;
+        ResultType res = neutralValue;
         for (InValue value : iteratable)
         {
             res = helpers::Applicator<Fun>{fun}(value, res);
@@ -140,10 +156,10 @@ namespace functional_impl
         return res;
     }
 
-    template<template<typename...> class Iteratable, typename Fun, typename InValue, typename OutValue, typename... ExtraArgs>
-    forceinline OutValue foldl(Fun fun, OutValue neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
+    template<typename ResultType, template<typename...> class Iteratable, typename Fun, typename InValue, typename... ExtraArgs>
+    forceinline ResultType foldl(Fun fun, ResultType neutralValue, const Iteratable<InValue, ExtraArgs...>& iteratable)
     {
-        OutValue res = neutralValue;
+        ResultType res = neutralValue;
         for (InValue value : iteratable)
         {
             res = helpers::Applicator<Fun>{fun}(res, value);
@@ -151,7 +167,7 @@ namespace functional_impl
         return res;
     }
 
-    template<typename Fun, template<typename...> class Container, typename LhsValue, typename RhsValue, typename OutValue = decltype(std::declval<Fun>()(std::declval<LhsValue>(), std::declval<RhsValue>())), typename... ExtraArgs1, typename... ExtraArgs2, typename OutContainer = Container<OutValue>>
+    template<typename Fun, template<typename...> class Container, typename LhsValue, typename RhsValue, typename ResultType = decltype(std::declval<Fun>()(std::declval<LhsValue>(), std::declval<RhsValue>())), typename... ExtraArgs1, typename... ExtraArgs2, typename OutContainer = Container<ResultType>>
     forceinline OutContainer zipWith(Fun fun, const Container<LhsValue, ExtraArgs1...>& lhs, const Container<RhsValue, ExtraArgs2...>& rhs)
     {
         OutContainer out;

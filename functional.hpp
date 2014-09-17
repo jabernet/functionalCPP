@@ -26,7 +26,6 @@ THE SOFTWARE.
 #include "functional_impl.hpp"
 
 // TODO:
-// - write map in a way that out container can be specified as first paramter
 // - write zipwith so that out container can be specified as first paramter
 
 namespace functional
@@ -36,16 +35,16 @@ namespace functional
     void apply(Fun fun, Iteratable& inout);
 
     //! map :: (a -> b) -> [a] -> [b]
-    template<typename Fun, typename Container>
-    auto map(Fun fun, const Container& input) -> decltype(functional_impl::map(fun, input));
+    template<typename ResultContainer = _Derived, typename Fun, typename Container>
+    auto map(Fun fun, const Container& input) -> decltype(functional_impl::map<ResultContainer>(fun, input));
 
     //! foldr :: (a -> b -> b) -> b -> [a] -> b
-    template<typename Fun, typename OutValue, typename Iteratable>
-    OutValue foldr(Fun f, OutValue neutralValue, const Iteratable& iteratable);
+    template<typename ResultType, typename Fun, typename Iteratable>
+    ResultType foldr(Fun f, ResultType neutralValue, const Iteratable& iteratable);
 
     //! foldl :: (a -> b -> a) -> a -> [b] -> a
-    template<typename Fun, typename OutValue, typename Iteratable>
-    OutValue foldl(Fun f, OutValue neutralValue, const Iteratable& iteratable);
+    template<typename ResultType, typename Fun, typename Iteratable>
+    ResultType foldl(Fun f, ResultType neutralValue, const Iteratable& iteratable);
 
     //! zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
     template<typename Fun, typename LhsContainer, typename RhsContainer>
@@ -77,22 +76,22 @@ void functional::apply(Fun fun, Iteratable& inout)
     return functional_impl::apply(fun, inout);
 }
 
-template<typename Fun, typename Container>
-auto functional::map(Fun fun, const Container& input) -> decltype(functional_impl::map(fun, input))
+template<typename ResultContainer, typename Fun, typename Container>
+auto functional::map(Fun fun, const Container& input) -> decltype(functional_impl::map<ResultContainer>(fun, input))
 {
-    return functional_impl::map(fun, input);
+    return functional_impl::map<ResultContainer>(fun, input);
 }
 
-template<typename Fun, typename OutValue, typename Iteratable>
-OutValue functional::foldr(Fun f, OutValue neutralValue, const Iteratable& iteratable)
+template<typename ResultType, typename Fun, typename Iteratable>
+ResultType functional::foldr(Fun f, ResultType neutralValue, const Iteratable& iteratable)
 {
-    return functional_impl::foldr(f, neutralValue, iteratable);
+    return functional_impl::foldr<ResultType>(f, neutralValue, iteratable);
 }
 
-template<typename Fun, typename OutValue, typename Iteratable>
-OutValue functional::foldl(Fun f, OutValue neutralValue, const Iteratable& iteratable)
+template<typename ResultType, typename Fun, typename Iteratable>
+ResultType functional::foldl(Fun f, ResultType neutralValue, const Iteratable& iteratable)
 {
-    return functional_impl::foldl(f, neutralValue, iteratable);
+    return functional_impl::foldl<ResultType>(f, neutralValue, iteratable);
 }
 
 template<typename Fun, typename LhsContainer, typename RhsContainer>
