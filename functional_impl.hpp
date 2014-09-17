@@ -291,21 +291,35 @@ namespace functional_impl
             }            
         };
 
-        // helper struct for indexes
-        template <std::size_t... Is>
-        struct indices {};
 
-        // template to extract indeces struct from parameter pack
-        template <std::size_t N, std::size_t... Is>
-        struct build_indices
-          : build_indices<N-1, N-1, Is...> {};
+        // below sequence generation code, in lieu of C++14 std::integer_sequence, is blatantly copied from 
+        // http://stackoverflow.com/questions/17424477/implementation-c14-make-integer-sequence
 
-        // template to extract indeces struct from parameter pack
-        template <std::size_t... Is>
-        struct build_indices<0, Is...> : indices<Is...> {};
+        template<class T> using Invoke = typename T::type;
 
+        template<unsigned...> struct seq{ using type = seq; };
+
+        template<class S1, class S2> struct concat;
+
+        template<unsigned... I1, unsigned... I2>
+        struct concat<seq<I1...>, seq<I2...>>
+            : seq<I1..., (sizeof...(I1)+I2)...>{};
+
+        template<class S1, class S2>
+        using Concat = Invoke<concat<S1, S2>>;
+
+        template<unsigned N> struct gen_seq;
+        template<unsigned N> using GenSeq = Invoke<gen_seq<N>>;
+
+        template<unsigned N>
+        struct gen_seq : Concat<GenSeq<N / 2>, GenSeq<N - N / 2>>{};
+
+        template<> struct gen_seq<0> : seq<>{};
+        template<> struct gen_seq<1> : seq<0>{};
+
+        
         template<typename Fun, typename... Args, std::size_t... Is>
-        forceinline auto uncurryTuple(Fun& f, const std::tuple<Args...>& args, indices<Is...>) -> decltype(f(std::get<Is>(args)...))
+        forceinline auto uncurryTuple(Fun& f, const std::tuple<Args...>& args, seq<Is...>) -> decltype(f(std::get<Is>(args)...))
         {
             return f(std::get<Is>(args)...);
         }
@@ -316,9 +330,9 @@ namespace functional_impl
             Applicator<Fun> f;
 
             template<typename... Args>
-            auto operator () (const std::tuple<Args...>& args) const -> decltype(uncurryTuple(f, args, build_indices<sizeof...(Args)>()))
+            auto operator () (const std::tuple<Args...>& args) const -> decltype(uncurryTuple(f, args, gen_seq<sizeof...(Args)>()))
             {
-                return uncurryTuple(f, args, build_indices<sizeof...(Args)>());
+                return uncurryTuple(f, args, gen_seq<sizeof...(Args)>());
             }
         };
     }
